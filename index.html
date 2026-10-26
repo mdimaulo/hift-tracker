@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F1F2EE">
+<meta name="apple-mobile-web-app-title" content="84 Days">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>84 Days — HIFT Tracker</title>
+<style>
+:root{
+  --paper:#F1F2EE; --card:#FFFFFF; --ink:#161A1D; --mut:#66707A; --line:#E4E7E1;
+  --acc:#0E4DA4; --accSoft:#E6EEFA;
+  --p:#2E6BE6; --c:#DE9A1B; --f:#E25C4A; --ok:#1E9E6A; --bad:#C9342A; --warnbg:#FBF3E2; --badbg:#FBE9E7; --okbg:#E7F6EF;
+  --r:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+main{max-width:560px;margin:0 auto;padding:12px 14px calc(96px + env(safe-area-inset-bottom))}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em}
+.small{font-size:13px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+button{font:inherit;border:0;background:none;color:inherit;padding:0;cursor:pointer;text-align:left}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--acc);color:#fff;
+  font-weight:700;border-radius:14px;padding:13px 16px;width:100%;font-size:16px;text-align:center}
+.btn.sec{background:var(--accSoft);color:var(--acc)}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.5}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--accSoft);color:var(--acc)}
+.pill.ok{background:var(--okbg);color:var(--ok)} .pill.warn{background:var(--warnbg);color:#8a5a06} .pill.bad{background:var(--badbg);color:var(--bad)}
+.pill.ghostp{background:#fff;border:1px solid var(--line);color:var(--mut)}
+/* day header */
+.hero{padding:18px 4px 6px}
+.hero .date{font-size:13px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.hero .big{font-size:44px;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1.05}
+.hero .big span{color:var(--mut);font-weight:700;font-size:22px}
+.ticks{height:8px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 11px);position:relative;overflow:hidden;margin:12px 0 4px}
+.ticks i{position:absolute;left:0;top:0;bottom:0;background:repeating-linear-gradient(90deg,var(--acc) 0 8px,transparent 8px 11px)}
+/* macros */
+.kcalNum{font-size:34px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:5px;background:var(--paper);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--ink);transition:width .4s}
+.bar.over i{background:var(--bad)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.mini{background:var(--paper);border-radius:12px;padding:10px}
+.mini b{font-size:17px;font-variant-numeric:tabular-nums}
+.mini .bar{height:6px;background:#fff}
+.mini.pP .bar i{background:var(--p)} .mini.pC .bar i{background:var(--c)} .mini.pF .bar i{background:var(--f)}
+.mini .bar.over i{background:var(--bad)}
+.alert{border-radius:14px;padding:12px 14px;margin-bottom:12px;font-weight:600;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.alert.bad{background:var(--badbg);color:var(--bad)} .alert.warn{background:var(--warnbg);color:#7c5104} .alert.ok{background:var(--okbg);color:var(--ok)}
+/* lists */
+.item{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start}
+.item:first-of-type{border-top:0}
+.item .nm{font-weight:700;font-size:15px}
+.item .macros{font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums}
+.tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.icoBtn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.add{background:var(--accSoft);color:var(--acc);font-size:22px;line-height:1}
+.del{color:var(--mut);font-size:18px}
+.trash{background:var(--badbg);color:var(--bad);font-size:15px}
+.yt{background:#FCE8E6;color:#CC0000}
+.yt svg{width:16px;height:16px;fill:#CC0000}
+.skipped .nm,.skipped .macros{color:var(--mut);text-decoration:line-through}
+.eaten .nm{color:var(--ok)}
+.stBtn{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--mut)}
+.stBtn.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.stBtn.off.on2{background:var(--paper);border-color:var(--mut);color:var(--mut)}
+/* training */
+.blockH{display:flex;align-items:baseline;gap:8px;margin:16px 0 4px}
+.blockH:first-child{margin-top:2px}
+.blockH .tag{color:var(--acc)}
+.coach{font-size:13px;color:var(--mut);margin:0 0 4px}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;margin-top:2px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.done .nm{color:var(--mut);text-decoration:line-through}
+.actual{font-size:13px;color:var(--acc);font-weight:700;margin-top:2px}
+.detail{background:var(--paper);border-radius:12px;padding:10px;margin:8px 0 2px}
+.rpes{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.rpes button{width:30px;height:30px;border-radius:9px;background:#fff;border:1px solid var(--line);font-weight:800;font-size:13px;text-align:center;display:flex;align-items:center;justify-content:center}
+.rpes button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.dnav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.dnav .nav{width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center}
+textarea,input[type=text],input[type=number],select{width:100%;font:inherit;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:64px}
+label.f{display:block;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 5px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+/* log */
+.photoZone{border:2px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;background:#fff}
+.photoZone img{max-width:100%;max-height:220px;border-radius:12px}
+.spin{width:22px;height:22px;border:3px solid var(--accSoft);border-top-color:var(--acc);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* plan */
+.wkpills{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
+.wkpills button{flex:none;padding:8px 13px;border-radius:99px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:14px}
+.wkpills button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dayrow{width:100%;display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.dayrow:first-of-type{border-top:0}
+.dow{width:44px;flex:none;text-align:center}
+.dow b{display:block;font-size:17px}.dow span{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase}
+/* library */
+.cath{margin:18px 0 2px}
+.cath h3{font-size:16px}
+.cath .small{margin-top:2px}
+/* tabs */
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);z-index:40;
+  border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+nav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--mut);width:64px;text-align:center}
+nav button.on{color:var(--acc)}
+nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* toast / sheet */
+#toast{position:fixed;left:14px;right:14px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:60;display:none;
+  border-radius:14px;padding:13px 15px;font-weight:700;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+#toast.bad{background:var(--bad);color:#fff}#toast.ok{background:var(--ok);color:#fff}#toast.warn{background:#B97A0F;color:#fff}#toast.info{background:var(--ink);color:#fff}
+#ovl{position:fixed;inset:0;background:rgba(20,25,30,.4);z-index:50;display:none}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:55;background:var(--card);border-radius:22px 22px 0 0;
+  padding:18px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .3s;max-width:560px;margin:0 auto;max-height:88vh;overflow:auto}
+#sheet.open{transform:none}
+.gear{width:38px;height:38px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.coachCard{background:linear-gradient(135deg,#0E4DA4,#0A3A7E);color:#fff;border:0}
+.coachCard .tag{color:#BCD4F5}
+.coachCard .small{color:#D5E3F7}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main id="main"></main>
+
+<nav id="tabs">
+  <button data-v="today" onclick="go('today')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>Today</button>
+  <button data-v="log" onclick="go('log')"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Log meal</button>
+  <button data-v="train" onclick="go('train')"><svg viewBox="0 0 24 24"><path d="M7 9v6M17 9v6M7 12h10M4 10v4M20 10v4"/></svg>Train</button>
+  <button data-v="lib" onclick="go('lib')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="15" width="7" height="7" rx="1.5"/><rect x="14" y="15" width="7" height="7" rx="1.5"/></svg>Library</button>
+  <button data-v="plan" onclick="go('plan')"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Plan</button>
+</nav>
+
+<div id="ovl" onclick="closeSheet()"></div>
+<div id="sheet"></div>
+<div id="toast"></div>
+<input type="file" accept="image/*" capture="environment" id="camIn" hidden>
+<input type="file" accept="image/*" id="libIn" hidden>
+
+<script>
+const DATA={"start":"2026-10-27","days":[{"week":1,"phase":"Foundation","dow":"Tuesday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":1,"phase":"Foundation","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":1,"phase":"Foundation","dow":"Thursday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":1,"phase":"Foundation","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":1,"phase":"Foundation","dow":"Saturday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":1,"phase":"Foundation","dow":"Sunday","t":3,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":1,"phase":"Foundation","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":2,"phase":"Foundation","dow":"Tuesday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":2,"phase":"Foundation","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":2,"phase":"Foundation","dow":"Thursday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":2,"phase":"Foundation","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":2,"phase":"Foundation","dow":"Saturday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":2,"phase":"Foundation","dow":"Sunday","t":5,"m":1,"ty":"Full Kettlebell Training","kcal":2450,"prot":155,"wat":2.7,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Kettlebell-only athletic session combining hinge, squat, press, pull/carry and core.","ob":"Develop total-body power, grip, trunk stiffness and conditioning using kettlebells only.","sf":"Use crisp reps. Stop swings if lower back dominates. Scale load before speed."},{"week":2,"phase":"Foundation","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":3,"phase":"Foundation","dow":"Tuesday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":3,"phase":"Foundation","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":3,"phase":"Foundation","dow":"Thursday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":3,"phase":"Foundation","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":3,"phase":"Foundation","dow":"Saturday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":3,"phase":"Foundation","dow":"Sunday","t":3,"m":2,"ty":"Integrated Training","kcal":2350,"prot":150,"wat":2.8,"min":60,"fs":"36h Fast starts 20:00","fw":"Sun 15 Nov 2026 20:00 -> Tue 17 Nov 2026 08:00","su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":3,"phase":"Foundation","dow":"Monday","t":6,"m":3,"ty":"Fasting / Training Suspended","kcal":0,"prot":0,"wat":3.0,"min":0,"fs":"36h Fast","fw":"Sun 15 Nov 2026 20:00 -> Tue 17 Nov 2026 08:00","su":1,"sm":"Training suspended during fast: hydration, electrolytes, gentle mobility only.","ob":"Use fasting as a recovery/calorie-control tool while protecting safety and muscle.","sf":"No hard training. Hydrate. Stop fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting."},{"week":4,"phase":"Deload + Technique","dow":"Tuesday","t":7,"m":4,"ty":"Refeed / Recovery","kcal":2200,"prot":140,"wat":2.7,"min":0,"fs":"36h Fast ends 08:00 / Refeed","fw":"Sun 15 Nov 2026 20:00 -> Tue 17 Nov 2026 08:00","su":0,"sm":"Refeed and recovery: no WOD; easy walking only if energy is stable.","ob":"Refuel gradually, restore protein intake and prepare for the next training session.","sf":"Break the fast gradually; avoid alcohol, very large meals and hard WODs today."},{"week":4,"phase":"Deload + Technique","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":4,"phase":"Deload + Technique","dow":"Thursday","t":8,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":35,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":4,"phase":"Deload + Technique","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":4,"phase":"Deload + Technique","dow":"Saturday","t":8,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":35,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":4,"phase":"Deload + Technique","dow":"Sunday","t":3,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":4,"phase":"Deload + Technique","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":30,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":5,"phase":"Build","dow":"Tuesday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":5,"phase":"Build","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":5,"phase":"Build","dow":"Thursday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":5,"phase":"Build","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":5,"phase":"Build","dow":"Saturday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":5,"phase":"Build","dow":"Sunday","t":5,"m":1,"ty":"Full Kettlebell Training","kcal":2450,"prot":155,"wat":2.7,"min":60,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Kettlebell-only athletic session combining hinge, squat, press, pull/carry and core.","ob":"Develop total-body power, grip, trunk stiffness and conditioning using kettlebells only.","sf":"Use crisp reps. Stop swings if lower back dominates. Scale load before speed."},{"week":5,"phase":"Build","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":6,"phase":"Build","dow":"Tuesday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":6,"phase":"Build","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":6,"phase":"Build","dow":"Thursday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":6,"phase":"Build","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":6,"phase":"Build","dow":"Saturday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":6,"phase":"Build","dow":"Sunday","t":3,"m":2,"ty":"Integrated Training","kcal":2350,"prot":150,"wat":2.8,"min":65,"fs":"36h Fast starts 20:00","fw":"Sun 06 Dec 2026 20:00 -> Tue 08 Dec 2026 08:00","su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":6,"phase":"Build","dow":"Monday","t":6,"m":3,"ty":"Fasting / Training Suspended","kcal":0,"prot":0,"wat":3.0,"min":0,"fs":"36h Fast","fw":"Sun 06 Dec 2026 20:00 -> Tue 08 Dec 2026 08:00","su":1,"sm":"Training suspended during fast: hydration, electrolytes, gentle mobility only.","ob":"Use fasting as a recovery/calorie-control tool while protecting safety and muscle.","sf":"No hard training. Hydrate. Stop fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting."},{"week":7,"phase":"Build","dow":"Tuesday","t":7,"m":4,"ty":"Refeed / Recovery","kcal":2200,"prot":140,"wat":2.7,"min":0,"fs":"36h Fast ends 08:00 / Refeed","fw":"Sun 06 Dec 2026 20:00 -> Tue 08 Dec 2026 08:00","su":0,"sm":"Refeed and recovery: no WOD; easy walking only if energy is stable.","ob":"Refuel gradually, restore protein intake and prepare for the next training session.","sf":"Break the fast gradually; avoid alcohol, very large meals and hard WODs today."},{"week":7,"phase":"Build","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":7,"phase":"Build","dow":"Thursday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":7,"phase":"Build","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":7,"phase":"Build","dow":"Saturday","t":9,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":7,"phase":"Build","dow":"Sunday","t":3,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":7,"phase":"Build","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":8,"phase":"Deload + Check","dow":"Tuesday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":8,"phase":"Deload + Check","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":8,"phase":"Deload + Check","dow":"Thursday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":8,"phase":"Deload + Check","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":50,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":8,"phase":"Deload + Check","dow":"Saturday","t":0,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":40,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":8,"phase":"Deload + Check","dow":"Sunday","t":10,"m":1,"ty":"Full Kettlebell Training","kcal":2450,"prot":155,"wat":2.7,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Kettlebell-only athletic session combining hinge, squat, press, pull/carry and core.","ob":"Develop total-body power, grip, trunk stiffness and conditioning using kettlebells only.","sf":"Use crisp reps. Stop swings if lower back dominates. Scale load before speed."},{"week":8,"phase":"Deload + Check","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":30,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":9,"phase":"Athletic Block","dow":"Tuesday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":9,"phase":"Athletic Block","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":9,"phase":"Athletic Block","dow":"Thursday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":9,"phase":"Athletic Block","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":9,"phase":"Athletic Block","dow":"Saturday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":9,"phase":"Athletic Block","dow":"Sunday","t":3,"m":2,"ty":"Integrated Training","kcal":2350,"prot":150,"wat":2.8,"min":70,"fs":"36h Fast starts 20:00","fw":"Sun 27 Dec 2026 20:00 -> Tue 29 Dec 2026 08:00","su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":9,"phase":"Athletic Block","dow":"Monday","t":6,"m":3,"ty":"Fasting / Training Suspended","kcal":0,"prot":0,"wat":3.0,"min":0,"fs":"36h Fast","fw":"Sun 27 Dec 2026 20:00 -> Tue 29 Dec 2026 08:00","su":1,"sm":"Training suspended during fast: hydration, electrolytes, gentle mobility only.","ob":"Use fasting as a recovery/calorie-control tool while protecting safety and muscle.","sf":"No hard training. Hydrate. Stop fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting."},{"week":10,"phase":"Athletic Block","dow":"Tuesday","t":7,"m":4,"ty":"Refeed / Recovery","kcal":2200,"prot":140,"wat":2.7,"min":0,"fs":"36h Fast ends 08:00 / Refeed","fw":"Sun 27 Dec 2026 20:00 -> Tue 29 Dec 2026 08:00","su":0,"sm":"Refeed and recovery: no WOD; easy walking only if energy is stable.","ob":"Refuel gradually, restore protein intake and prepare for the next training session.","sf":"Break the fast gradually; avoid alcohol, very large meals and hard WODs today."},{"week":10,"phase":"Athletic Block","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":10,"phase":"Athletic Block","dow":"Thursday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":10,"phase":"Athletic Block","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":10,"phase":"Athletic Block","dow":"Saturday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":10,"phase":"Athletic Block","dow":"Sunday","t":3,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":10,"phase":"Athletic Block","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":11,"phase":"Athletic Block","dow":"Tuesday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":11,"phase":"Athletic Block","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":11,"phase":"Athletic Block","dow":"Thursday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":11,"phase":"Athletic Block","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":70,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":11,"phase":"Athletic Block","dow":"Saturday","t":11,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":55,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":11,"phase":"Athletic Block","dow":"Sunday","t":5,"m":1,"ty":"Full Kettlebell Training","kcal":2450,"prot":155,"wat":2.7,"min":65,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Kettlebell-only athletic session combining hinge, squat, press, pull/carry and core.","ob":"Develop total-body power, grip, trunk stiffness and conditioning using kettlebells only.","sf":"Use crisp reps. Stop swings if lower back dominates. Scale load before speed."},{"week":11,"phase":"Athletic Block","dow":"Monday","t":4,"m":0,"ty":"Conditioning / Mobility","kcal":2300,"prot":150,"wat":2.5,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Bike/jump-rope conditioning with mobility and low-load core stability.","ob":"Maintain conditioning, coordination and joint quality without maximal intensity.","sf":"Keep intensity controlled and leave 1-2 reps in reserve where relevant."},{"week":12,"phase":"Review + 48h Fast","dow":"Tuesday","t":8,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":35,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":12,"phase":"Review + 48h Fast","dow":"Wednesday","t":1,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":12,"phase":"Review + 48h Fast","dow":"Thursday","t":8,"m":0,"ty":"Zone 2 Walk","kcal":2300,"prot":150,"wat":2.5,"min":35,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":12,"phase":"Review + 48h Fast","dow":"Friday","t":2,"m":1,"ty":"Integrated Training","kcal":2450,"prot":155,"wat":2.7,"min":45,"fs":"Overnight 12-14h","fw":null,"su":0,"sm":"Integrated HIFT session: calisthenics work-up, load ramp, strength-power WOD and core bracing.","ob":"Build athletic strength, power, calisthenics capacity and conditioning together.","sf":"RPE cap 7-8. No grinding barbell reps; quality beats score."},{"week":12,"phase":"Review + 48h Fast","dow":"Saturday","t":8,"m":5,"ty":"Zone 2 Walk","kcal":2350,"prot":150,"wat":2.8,"min":35,"fs":"48h Fast starts 20:00","fw":"Sat 16 Jan 2027 20:00 -> Mon 18 Jan 2027 20:00","su":0,"sm":"Early Zone 2 walk or treadmill at talk-test pace; finish with mobility.","ob":"Build aerobic base and support fat loss without adding recovery debt.","sf":"Stay conversational. If breathing becomes hard, reduce speed or incline."},{"week":12,"phase":"Review + 48h Fast","dow":"Sunday","t":6,"m":3,"ty":"Fasting / Training Suspended","kcal":0,"prot":0,"wat":3.0,"min":0,"fs":"48h Fast","fw":"Sat 16 Jan 2027 20:00 -> Mon 18 Jan 2027 20:00","su":1,"sm":"Training suspended during fast: hydration, electrolytes, gentle mobility only.","ob":"Use fasting as a recovery/calorie-control tool while protecting safety and muscle.","sf":"No hard training. Hydrate. Stop fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting."},{"week":12,"phase":"Review + 48h Fast","dow":"Monday","t":6,"m":6,"ty":"Fasting / Training Suspended","kcal":700,"prot":50,"wat":3.0,"min":0,"fs":"48h Fast ends 20:00","fw":"Sat 16 Jan 2027 20:00 -> Mon 18 Jan 2027 20:00","su":1,"sm":"Training suspended during fast: hydration, electrolytes, gentle mobility only.","ob":"Use fasting as a recovery/calorie-control tool while protecting safety and muscle.","sf":"No hard training. Hydrate. Stop fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting."}],"T":[{"ex":[["Movement Prep","Easy walk","3-5 minutes before raising speed or incline.","Keep breathing relaxed."],["Movement Prep","Ankle and hip circles","10 circles each side.","Prepare calves, hips and gait."],["Main Work","Zone 2 walk / treadmill","40 minutes at talk-test pace.","Approx HR guide 105-120 bpm; use talk test first."],["Main Work","Incline control","Add incline before speed if HR is too low.","Avoid drifting into hard breathing."],["Core / Stability","Dead bug or bird dog","2 x 8 per side, slow.","Move without lower-back arching."],["Mobility Downshift","Calf, hip flexor and hamstring stretch","5 minutes total.","Finish calmer than you started."]]},{"ex":[["Calisthenics Work-up","Air squat","2 x 10 reps.","Smooth depth, full-foot pressure."],["Calisthenics Work-up","Scapular pull-up or dead hang","2 x 15-20 sec.","Active shoulders, no pain."],["Calisthenics Work-up","Push-up","2 x 6-8 reps.","Incline if needed."],["Load / Skill Ramp","Goblet squat or front squat ramp","3 x 5 light to moderate.","Stop 2 reps before form slows."],["Load / Skill Ramp","Pull-up progression ramp","3 easy sets.","Chair assist, negatives or clean reps."],["Integrated WOD","AMRAP 18 minutes","6 goblet/front squats + 5 pull-up progression + 8 push-ups + 30 sec farmer carry.","RPE 7-8; quality rounds beat speed."],["Integrated WOD","Goblet/front squat","6 reps each round.","Use load you can control while breathing hard."],["Integrated WOD","Pull-up progression","5 reps, negatives or assisted reps each round.","No failed reps."],["Integrated WOD","Push-up","8 reps or incline variation.","Keep ribs down."],["Integrated WOD","Farmer carry","30 sec each round.","Tall posture, quiet steps."],["Core Integration","Hollow hold","3 x 20 sec after WOD if not already taxed.","Tuck knees to scale."],["Mobility Downshift","Lat, hip and forearm mobility","8 minutes.","Recover shoulders and grip."]]},{"ex":[["Calisthenics Work-up","Reverse lunge","2 x 8 per side.","Knee tracks over toes."],["Calisthenics Work-up","Inchworm to plank","2 x 5 reps.","Shoulders stacked, slow."],["Calisthenics Work-up","Dead hang","2 x 20 sec.","Grip and shoulder prep."],["Load / Skill Ramp","Barbell Romanian deadlift ramp","3 x 5 light to moderate.","Hinge; neutral spine."],["Load / Skill Ramp","Strict press ramp","3 x 5.","Ribs down, glutes lightly on."],["Integrated WOD","Every 3 minutes x 6 rounds","6 RDL or deadlift + 6 strict press + 8 reverse lunges + 20 sec side plank per side.","Finish each round with 45-60 sec rest."],["Integrated WOD","Hinge lift","6 reps each round.","No grinding or back rounding."],["Integrated WOD","Strict press","6 reps each round.","Scale load before arching back."],["Integrated WOD","Reverse lunge","8 total or per side based on capacity.","Smooth, controlled steps."],["Core Integration","Side plank","20 sec per side each round.","Straight line from ankle to shoulder."],["Mobility Downshift","Hip flexor and thoracic rotation","8 minutes.","Downshift nervous system."]]},{"ex":[["Calisthenics Work-up","Jump rope or march","2 minutes easy.","Low-impact if calves are tight."],["Calisthenics Work-up","Bear crawl","2 x 20-30 sec.","Slow and controlled."],["Calisthenics Work-up","Push-up to downward dog","2 x 6 reps.","Open shoulders."],["Load / Skill Ramp","Kettlebell swing ramp","4 x 8 light to working bell.","Hip snap, no back pull."],["Integrated WOD","EMOM 20 minutes","Minute 1: 10 KB swings; Minute 2: 8 goblet squats; Minute 3: 5 chin-up/pull-up progression; Minute 4: 8 push-ups + 20 sec plank.","5 cycles, leave breathing room each minute."],["Integrated WOD","Kettlebell swing","10 reps on swing minute.","Replace with KB deadlift if back feels off."],["Integrated WOD","Goblet squat","8 reps on squat minute.","Controlled depth."],["Integrated WOD","Chin-up / pull-up progression","5 reps or 3 negatives.","No failed reps."],["Integrated WOD","Push-up + plank","8 push-ups then 20 sec plank.","Incline push-up if needed."],["Core Integration","Suitcase carry","3 x 30-40 sec per side.","Do not lean."],["Mobility Downshift","Hip, lat and wrist mobility","8-10 minutes.","Recover for next week."]]},{"ex":[["Movement Prep","Easy bike spin","5 minutes very easy.","Nasal breathing if possible."],["Main Work","Bike Zone 2","25-45 minutes at talk-test pace based on phase.","Do not turn this into intervals unless scheduled."],["Skill","Jump rope practice","6-10 rounds of 20-30 sec easy / 30-40 sec rest.","Light bounce, relaxed shoulders."],["Mobility","Couch stretch","60 sec per side.","Open hip flexors."],["Mobility","Thoracic rotation","8 reps per side.","Slow controlled rotation."],["Core / Stability","Bird dog","2 x 8 per side.","No lower-back movement."]]},{"ex":[["Kettlebell Work-up","Kettlebell halo","2 x 8 each direction, light.","Shoulders smooth, ribs down."],["Kettlebell Work-up","Kettlebell deadlift","2 x 10 reps.","Own the hinge before swings."],["Kettlebell Work-up","Goblet squat pry","2 x 5 slow reps.","Open hips, stay tall."],["Load / Skill Ramp","Swing ramp","3 x 8 light to working bell.","Stop if back takes over."],["Kettlebell WOD","For quality: 5 rounds","12 swings + 8 goblet squats + 6 clean and press per side + 30 sec suitcase carry per side.","moderate to strong pace; rest as needed."],["Kettlebell WOD","Kettlebell swing","12 reps per round.","Explosive hips, packed shoulders."],["Kettlebell WOD","Goblet squat","8 reps per round.","Full-foot pressure."],["Kettlebell WOD","Clean and press","6 reps per side per round.","Use strict press; scale to one-arm floor press if needed."],["Kettlebell WOD","Suitcase carry","30 sec per side per round.","Core braced, do not lean."],["Core Integration","Turkish get-up partial","2 x 2 per side to elbow or hand.","Skill quality only, no fatigue chasing."],["Mobility Downshift","Forearm, shoulder and hip mobility","8 minutes.","Grip and shoulder recovery."]]},{"ex":[["Fasting Recovery","Hydration","2.5-3.0L water across the day unless medically restricted.","Hydrated fast, not dry fast."],["Fasting Recovery","Electrolytes","Consider sodium/electrolytes if appropriate for you.","Avoid if doctor restricts salt."],["Fasting Recovery","Gentle walking","Optional 10-20 minutes only if stable.","Stop for dizziness or weakness."],["Mobility","Gentle mobility or breathing","5-10 minutes easy.","No loaded stretching or hard effort."],["Safety","Training suspended","No kettlebell, barbell, WOD, intervals, sauna or long Zone 2.","Protect recovery and safety."],["Safety","Stop criteria","Stop fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting.","Seek medical help for severe symptoms."]]},{"ex":[["Refeed Recovery","Break fast gradually","Protein + cooked vegetables + small carb portion.","Avoid huge meals and alcohol."],["Refeed Recovery","Easy walk","Optional 10-20 minutes after first meal.","Only if energy is stable."],["Mobility","Gentle mobility","8-12 minutes hips, calves, thoracic spine.","Keep it restorative."],["Safety","No WOD today","No hard kettlebell, barbell, intervals or max pull-ups.","Resume training after normal refeeding."],["Nutrition","Protein restoration","Aim 35-45g protein at each main meal.","Return to high-protein structure."]]},{"ex":[["Movement Prep","Easy walk","3-5 minutes before raising speed or incline.","Keep breathing relaxed."],["Movement Prep","Ankle and hip circles","10 circles each side.","Prepare calves, hips and gait."],["Main Work","Zone 2 walk / treadmill","35 minutes at talk-test pace.","Approx HR guide 105-120 bpm; use talk test first."],["Main Work","Incline control","Add incline before speed if HR is too low.","Avoid drifting into hard breathing."],["Core / Stability","Dead bug or bird dog","2 x 8 per side, slow.","Move without lower-back arching."],["Mobility Downshift","Calf, hip flexor and hamstring stretch","5 minutes total.","Finish calmer than you started."]]},{"ex":[["Movement Prep","Easy walk","3-5 minutes before raising speed or incline.","Keep breathing relaxed."],["Movement Prep","Ankle and hip circles","10 circles each side.","Prepare calves, hips and gait."],["Main Work","Zone 2 walk / treadmill","50 minutes at talk-test pace.","Approx HR guide 105-120 bpm; use talk test first."],["Main Work","Incline control","Add incline before speed if HR is too low.","Avoid drifting into hard breathing."],["Core / Stability","Dead bug or bird dog","2 x 8 per side, slow.","Move without lower-back arching."],["Mobility Downshift","Calf, hip flexor and hamstring stretch","5 minutes total.","Finish calmer than you started."]]},{"ex":[["Kettlebell Work-up","Kettlebell halo","2 x 8 each direction, light.","Shoulders smooth, ribs down."],["Kettlebell Work-up","Kettlebell deadlift","2 x 10 reps.","Own the hinge before swings."],["Kettlebell Work-up","Goblet squat pry","2 x 5 slow reps.","Open hips, stay tall."],["Load / Skill Ramp","Swing ramp","3 x 8 light to working bell.","Stop if back takes over."],["Kettlebell WOD","For quality: 5 rounds","12 swings + 8 goblet squats + 6 clean and press per side + 30 sec suitcase carry per side.","light/moderate deload pace; rest as needed."],["Kettlebell WOD","Kettlebell swing","12 reps per round.","Explosive hips, packed shoulders."],["Kettlebell WOD","Goblet squat","8 reps per round.","Full-foot pressure."],["Kettlebell WOD","Clean and press","6 reps per side per round.","Use strict press; scale to one-arm floor press if needed."],["Kettlebell WOD","Suitcase carry","30 sec per side per round.","Core braced, do not lean."],["Core Integration","Turkish get-up partial","2 x 2 per side to elbow or hand.","Skill quality only, no fatigue chasing."],["Mobility Downshift","Forearm, shoulder and hip mobility","8 minutes.","Grip and shoulder recovery."]]},{"ex":[["Movement Prep","Easy walk","3-5 minutes before raising speed or incline.","Keep breathing relaxed."],["Movement Prep","Ankle and hip circles","10 circles each side.","Prepare calves, hips and gait."],["Main Work","Zone 2 walk / treadmill","55 minutes at talk-test pace.","Approx HR guide 105-120 bpm; use talk test first."],["Main Work","Incline control","Add incline before speed if HR is too low.","Avoid drifting into hard breathing."],["Core / Stability","Dead bug or bird dog","2 x 8 per side, slow.","Move without lower-back arching."],["Mobility Downshift","Calf, hip flexor and hamstring stretch","5 minutes total.","Finish calmer than you started."]]}],"M2":[[{"type":"Breakfast","note":"Keep it high protein.","items":[{"fi":24,"q":3},{"fi":52,"q":1},{"fi":75,"q":1},{"fi":130,"q":1},{"fi":29,"q":0.5}]},{"type":"Lunch","note":"Build a plate, not random snacks.","items":[{"fi":0,"q":2},{"fi":41,"q":2},{"fi":88,"q":2},{"fi":120,"q":1}]},{"type":"Snack","note":"Useful to reach protein target.","items":[{"fi":27,"q":2.5},{"fi":71,"q":1}]},{"type":"Dinner","note":"Finish 2-3h before sleep when possible.","items":[{"fi":3,"q":1.5},{"fi":88,"q":3},{"fi":49,"q":2},{"fi":120,"q":1}]},{"type":"Hydration","txt":"2.5-2.7L water across the day."}],[{"type":"Pre-training","note":"Use only if needed.","items":[{"fi":147,"q":1},{"fi":70,"q":1}]},{"type":"Breakfast","note":"Prioritize protein.","items":[{"fi":24,"q":3},{"fi":52,"q":1.5},{"fi":75,"q":1.5},{"fi":29,"q":1}]},{"type":"Lunch","note":"Build a plate, not random snacks.","items":[{"fi":0,"q":2},{"fi":41,"q":2},{"fi":88,"q":2},{"fi":120,"q":1}]},{"type":"Snack","note":"Useful to reach protein target.","items":[{"fi":27,"q":2.5},{"fi":71,"q":1}]},{"type":"Dinner","note":"Finish 2-3h before sleep when possible.","items":[{"fi":3,"q":1.5},{"fi":88,"q":3},{"fi":49,"q":2},{"fi":120,"q":1}]},{"type":"Hydration","txt":"2.5-2.7L water across the day."}],[{"type":"Pre-training","note":"Use only if needed.","items":[{"fi":147,"q":1},{"fi":70,"q":1}]},{"type":"Breakfast","note":"Prioritize protein.","items":[{"fi":24,"q":3},{"fi":52,"q":1.5},{"fi":75,"q":1.5},{"fi":29,"q":1}]},{"type":"Lunch","note":"Build a plate, not random snacks.","items":[{"fi":0,"q":2},{"fi":41,"q":2},{"fi":88,"q":2},{"fi":120,"q":1}]},{"type":"Snack","note":"Useful to reach protein target.","items":[{"fi":27,"q":2.5},{"fi":71,"q":1}]},{"type":"Dinner","note":"Fast starts at 20:00.","items":[{"fi":9,"q":1.8},{"fi":49,"q":2.5},{"fi":88,"q":3}]},{"type":"Hydration","txt":"2.5-2.8L water; start hydrated before the fast."}],[{"type":"Hydration","txt":"Water across the day; aim 2.5-3.0L unless medically restricted. • Electrolytes/sodium if appropriate for your blood pressure and medical situation. • Black coffee or unsweetened tea if tolerated. • No meals today; training is suspended. • Stop the fast for persistent dizziness, fainting, chest pain, confusion, palpitations, severe weakness or vomiting."}],[{"type":"Breakfast","note":"First meal after 36h fast.","items":[{"fi":24,"q":2.5},{"fi":52,"q":1},{"fi":70,"q":1},{"fi":138,"q":0.5},{"fi":19,"q":1}]},{"type":"Lunch","note":"Return to structured meals.","items":[{"fi":12,"q":2.2},{"fi":49,"q":2.5},{"fi":88,"q":2.5},{"fi":120,"q":1}]},{"type":"Snack","note":"No binge compensation.","items":[{"fi":24,"q":2.5},{"fi":73,"q":1},{"fi":124,"q":0.5}]},{"type":"Dinner","note":"Avoid alcohol today.","items":[{"fi":116,"q":1},{"fi":109,"q":1},{"fi":107,"q":1},{"fi":43,"q":1},{"fi":120,"q":0.5}]},{"type":"Hydration","txt":"2.5-2.7L water across the day."}],[{"type":"Breakfast","note":"Keep it high protein.","items":[{"fi":24,"q":3},{"fi":52,"q":1},{"fi":75,"q":1},{"fi":130,"q":1},{"fi":29,"q":0.5}]},{"type":"Lunch","note":"Build a plate, not random snacks.","items":[{"fi":0,"q":2},{"fi":41,"q":2},{"fi":88,"q":2},{"fi":120,"q":1}]},{"type":"Snack","note":"Useful to reach protein target.","items":[{"fi":27,"q":2.5},{"fi":71,"q":1}]},{"type":"Dinner","note":"Fast starts at 20:00.","items":[{"fi":9,"q":1.8},{"fi":49,"q":2.5},{"fi":88,"q":3}]},{"type":"Hydration","txt":"2.5-2.8L water; start hydrated before the fast."}],[{"type":"Dinner","note":"Break at 20:00; eat slowly.","items":[{"fi":13,"q":2},{"fi":49,"q":2},{"fi":88,"q":2},{"fi":120,"q":1}]},{"type":"Hydration","txt":"Water and optional unsweetened tea/coffee during the fasting window. • Electrolytes if appropriate for you. • Avoid alcohol, fried foods and a very large refeed meal."}]],"foods":[{"n":"Chicken breast, cooked","cat":"prot","por":"100 g","kcal":165,"p":31,"c":0,"f":3.6},{"n":"Chicken thigh, cooked","cat":"prot","por":"100 g","kcal":209,"p":26,"c":0,"f":11},{"n":"Turkey breast, cooked","cat":"prot","por":"100 g","kcal":135,"p":29,"c":0,"f":1.2},{"n":"Lean beef, cooked","cat":"prot","por":"100 g","kcal":187,"p":27,"c":0,"f":8},{"n":"Beef fillet, cooked","cat":"prot","por":"100 g","kcal":195,"p":28,"c":0,"f":9},{"n":"Pork loin, cooked","cat":"prot","por":"100 g","kcal":190,"p":27,"c":0,"f":9},{"n":"Veal cutlet, cooked","cat":"prot","por":"100 g","kcal":172,"p":30,"c":0,"f":5},{"n":"Bresaola","cat":"prot","por":"50 g","kcal":76,"p":16,"c":0,"f":1},{"n":"Prosciutto crudo, lean","cat":"prot","por":"50 g","kcal":108,"p":13,"c":0,"f":6},{"n":"Salmon, cooked","cat":"prot","por":"100 g","kcal":208,"p":20,"c":0,"f":13},{"n":"Tuna, canned in water","cat":"prot","por":"100 g","kcal":100,"p":22,"c":0,"f":1},{"n":"Tuna steak, cooked","cat":"prot","por":"100 g","kcal":132,"p":28,"c":0,"f":1.3},{"n":"Cod, cooked","cat":"prot","por":"100 g","kcal":105,"p":23,"c":0,"f":0.9},{"n":"Sea bass (branzino), cooked","cat":"prot","por":"100 g","kcal":97,"p":20,"c":0,"f":2},{"n":"Sea bream (orata), cooked","cat":"prot","por":"100 g","kcal":115,"p":20,"c":0,"f":3.8},{"n":"Trout, cooked","cat":"prot","por":"100 g","kcal":148,"p":21,"c":0,"f":6.6},{"n":"Sardines, canned","cat":"prot","por":"80 g","kcal":166,"p":20,"c":0,"f":9},{"n":"Shrimp, cooked","cat":"prot","por":"100 g","kcal":99,"p":24,"c":0,"f":0.3},{"n":"Octopus, cooked","cat":"prot","por":"100 g","kcal":82,"p":15,"c":2,"f":1},{"n":"Egg, whole","cat":"prot","por":"1 large","kcal":72,"p":6.3,"c":0.4,"f":4.8},{"n":"Egg whites","cat":"prot","por":"100 g","kcal":52,"p":11,"c":0.7,"f":0.2},{"n":"Smoked salmon","cat":"prot","por":"50 g","kcal":84,"p":9,"c":0,"f":5},{"n":"Beef jerky","cat":"prot","por":"30 g","kcal":82,"p":10,"c":3,"f":1.5},{"n":"Rabbit, cooked","cat":"prot","por":"100 g","kcal":173,"p":33,"c":0,"f":3.5},{"n":"Skyr, plain","cat":"dairy","por":"100 g","kcal":63,"p":11,"c":4,"f":0.2},{"n":"Greek yogurt 2%","cat":"dairy","por":"100 g","kcal":73,"p":10,"c":4,"f":2},{"n":"Greek yogurt 5%","cat":"dairy","por":"100 g","kcal":97,"p":9,"c":3.8,"f":5},{"n":"Cottage cheese 4.5%","cat":"dairy","por":"100 g","kcal":98,"p":11,"c":3.4,"f":4.3},{"n":"Quark, low-fat","cat":"dairy","por":"100 g","kcal":67,"p":12,"c":4,"f":0.3},{"n":"Whey protein","cat":"dairy","por":"1 scoop 30 g","kcal":117,"p":24,"c":2.7,"f":1.5},{"n":"Casein protein","cat":"dairy","por":"1 scoop 30 g","kcal":111,"p":24,"c":3,"f":0.9},{"n":"Milk, semi-skimmed","cat":"dairy","por":"200 ml","kcal":94,"p":7,"c":10,"f":3.2},{"n":"Mozzarella","cat":"dairy","por":"100 g","kcal":253,"p":18,"c":2,"f":19},{"n":"Mozzarella light","cat":"dairy","por":"100 g","kcal":163,"p":20,"c":2,"f":8},{"n":"Parmigiano Reggiano","cat":"dairy","por":"30 g","kcal":118,"p":10,"c":0,"f":8},{"n":"Grana Padano","cat":"dairy","por":"30 g","kcal":115,"p":10,"c":0,"f":8},{"n":"Ricotta","cat":"dairy","por":"100 g","kcal":146,"p":10,"c":4,"f":10},{"n":"Feta","cat":"dairy","por":"50 g","kcal":132,"p":7,"c":2,"f":11},{"n":"Halloumi, grilled","cat":"dairy","por":"80 g","kcal":253,"p":17,"c":2,"f":20},{"n":"Kefir","cat":"dairy","por":"200 ml","kcal":104,"p":6,"c":9,"f":5},{"n":"Protein yogurt (HiPRO-style)","cat":"dairy","por":"200 g","kcal":132,"p":20,"c":10,"f":0.4},{"n":"White rice, cooked","cat":"carb","por":"100 g","kcal":130,"p":2.4,"c":28,"f":0.3},{"n":"Brown rice, cooked","cat":"carb","por":"100 g","kcal":123,"p":2.7,"c":26,"f":1},{"n":"Basmati rice, cooked","cat":"carb","por":"100 g","kcal":121,"p":3,"c":25,"f":0.4},{"n":"Quinoa, cooked","cat":"carb","por":"100 g","kcal":120,"p":4.4,"c":21,"f":1.9},{"n":"Pasta, cooked","cat":"carb","por":"100 g","kcal":158,"p":5.8,"c":31,"f":0.9},{"n":"Whole-wheat pasta, cooked","cat":"carb","por":"100 g","kcal":149,"p":6,"c":30,"f":1.1},{"n":"Couscous, cooked","cat":"carb","por":"100 g","kcal":112,"p":3.8,"c":23,"f":0.2},{"n":"Polenta, cooked","cat":"carb","por":"150 g","kcal":106,"p":2.5,"c":23,"f":0.5},{"n":"Potatoes, boiled","cat":"carb","por":"100 g","kcal":86,"p":1.8,"c":19,"f":0.1},{"n":"Sweet potato, baked","cat":"carb","por":"100 g","kcal":90,"p":2,"c":21,"f":0.1},{"n":"Gnocchi, cooked","cat":"carb","por":"100 g","kcal":133,"p":3.2,"c":28,"f":0.6},{"n":"Oats, dry","cat":"carb","por":"40 g","kcal":156,"p":5.3,"c":26.6,"f":2.8},{"n":"Muesli, no added sugar","cat":"carb","por":"50 g","kcal":181,"p":5,"c":31,"f":4},{"n":"Buckwheat, cooked","cat":"carb","por":"100 g","kcal":92,"p":3.4,"c":20,"f":0.6},{"n":"Barley (orzo), cooked","cat":"carb","por":"100 g","kcal":123,"p":2.3,"c":28,"f":0.4},{"n":"Farro, cooked","cat":"carb","por":"100 g","kcal":127,"p":5,"c":26,"f":1},{"n":"Rice cakes","cat":"carb","por":"2 pieces","kcal":70,"p":1.5,"c":15,"f":0.5},{"n":"Corn, sweet","cat":"carb","por":"100 g","kcal":96,"p":3.4,"c":21,"f":1.5},{"n":"Whole-grain bread","cat":"bread","por":"1 slice 40 g","kcal":99,"p":4,"c":17,"f":1.5},{"n":"White bread","cat":"bread","por":"1 slice 40 g","kcal":106,"p":3.5,"c":20,"f":1},{"n":"Rye bread","cat":"bread","por":"1 slice 45 g","kcal":104,"p":3.4,"c":19,"f":1.4},{"n":"Sourdough bread","cat":"bread","por":"1 slice 50 g","kcal":130,"p":4.3,"c":25,"f":0.8},{"n":"Ciabatta","cat":"bread","por":"80 g","kcal":216,"p":7,"c":42,"f":2.4},{"n":"Focaccia","cat":"bread","por":"80 g","kcal":249,"p":6,"c":33,"f":10},{"n":"Piadina","cat":"bread","por":"1 piece 100 g","kcal":300,"p":7,"c":44,"f":10},{"n":"Wrap / tortilla","cat":"bread","por":"1 piece 60 g","kcal":180,"p":5,"c":30,"f":4.5},{"n":"Bagel","cat":"bread","por":"1 piece 90 g","kcal":245,"p":10,"c":48,"f":1.5},{"n":"Crispbread (Wasa-style)","cat":"bread","por":"2 pieces","kcal":70,"p":2.5,"c":13,"f":0.4},{"n":"Grissini","cat":"bread","por":"3 sticks 25 g","kcal":103,"p":3,"c":18,"f":2},{"n":"Banana","cat":"fruit","por":"1 medium","kcal":105,"p":1.3,"c":27,"f":0.4},{"n":"Apple","cat":"fruit","por":"1 medium","kcal":95,"p":0.5,"c":25,"f":0.3},{"n":"Pear","cat":"fruit","por":"1 medium","kcal":100,"p":0.6,"c":27,"f":0.2},{"n":"Orange","cat":"fruit","por":"1 medium","kcal":65,"p":1.3,"c":16,"f":0.2},{"n":"Kiwi","cat":"fruit","por":"1 piece","kcal":44,"p":0.8,"c":10,"f":0.4},{"n":"Mixed berries","cat":"fruit","por":"100 g","kcal":45,"p":0.7,"c":9,"f":0.4},{"n":"Blueberries","cat":"fruit","por":"100 g","kcal":57,"p":0.7,"c":14,"f":0.3},{"n":"Strawberries","cat":"fruit","por":"150 g","kcal":48,"p":1,"c":11,"f":0.5},{"n":"Grapes","cat":"fruit","por":"100 g","kcal":69,"p":0.7,"c":18,"f":0.2},{"n":"Peach","cat":"fruit","por":"1 medium","kcal":59,"p":1.4,"c":14,"f":0.4},{"n":"Melon","cat":"fruit","por":"200 g","kcal":68,"p":1.7,"c":16,"f":0.4},{"n":"Watermelon","cat":"fruit","por":"200 g","kcal":60,"p":1.2,"c":15,"f":0.3},{"n":"Pineapple","cat":"fruit","por":"100 g","kcal":50,"p":0.5,"c":13,"f":0.1},{"n":"Mango","cat":"fruit","por":"100 g","kcal":60,"p":0.8,"c":15,"f":0.4},{"n":"Figs, fresh","cat":"fruit","por":"2 pieces","kcal":74,"p":0.8,"c":19,"f":0.3},{"n":"Dates, Medjool","cat":"fruit","por":"2 pieces","kcal":133,"p":0.8,"c":36,"f":0},{"n":"Dried apricots","cat":"fruit","por":"30 g","kcal":72,"p":1,"c":17,"f":0.1},{"n":"Raisins","cat":"fruit","por":"30 g","kcal":90,"p":0.9,"c":24,"f":0.1},{"n":"Mixed vegetables, cooked","cat":"veg","por":"100 g","kcal":35,"p":1.5,"c":5,"f":0.5},{"n":"Large mixed salad","cat":"veg","por":"150 g","kcal":35,"p":2,"c":6,"f":0.5},{"n":"Broccoli, cooked","cat":"veg","por":"150 g","kcal":53,"p":4.2,"c":10,"f":0.6},{"n":"Spinach, cooked","cat":"veg","por":"150 g","kcal":35,"p":4.3,"c":5,"f":0.6},{"n":"Zucchini, cooked","cat":"veg","por":"150 g","kcal":26,"p":2,"c":5,"f":0.5},{"n":"Bell peppers","cat":"veg","por":"100 g","kcal":31,"p":1,"c":6,"f":0.3},{"n":"Tomatoes","cat":"veg","por":"150 g","kcal":27,"p":1.3,"c":6,"f":0.3},{"n":"Cherry tomatoes","cat":"veg","por":"100 g","kcal":18,"p":0.9,"c":3.9,"f":0.2},{"n":"Cucumber","cat":"veg","por":"150 g","kcal":23,"p":1,"c":5,"f":0.2},{"n":"Carrots","cat":"veg","por":"100 g","kcal":41,"p":0.9,"c":10,"f":0.2},{"n":"Green beans, cooked","cat":"veg","por":"150 g","kcal":47,"p":2.7,"c":10,"f":0.3},{"n":"Asparagus, cooked","cat":"veg","por":"150 g","kcal":33,"p":3.6,"c":6,"f":0.3},{"n":"Cauliflower, cooked","cat":"veg","por":"150 g","kcal":38,"p":2.9,"c":7,"f":0.4},{"n":"Eggplant, grilled","cat":"veg","por":"150 g","kcal":38,"p":1.5,"c":9,"f":0.3},{"n":"Mushrooms, cooked","cat":"veg","por":"100 g","kcal":28,"p":3.1,"c":4,"f":0.5},{"n":"Kale, cooked","cat":"veg","por":"100 g","kcal":36,"p":2.5,"c":7,"f":0.5},{"n":"Beetroot, cooked","cat":"veg","por":"100 g","kcal":44,"p":1.7,"c":10,"f":0.2},{"n":"Fennel","cat":"veg","por":"150 g","kcal":47,"p":1.9,"c":11,"f":0.3},{"n":"Artichokes, cooked","cat":"veg","por":"150 g","kcal":80,"p":4.4,"c":18,"f":0.5},{"n":"Grilled vegetable mix","cat":"veg","por":"200 g","kcal":90,"p":3,"c":12,"f":3},{"n":"Lentils, cooked","cat":"leg","por":"100 g","kcal":116,"p":9,"c":20,"f":0.4},{"n":"Chickpeas, cooked","cat":"leg","por":"100 g","kcal":164,"p":8.9,"c":27,"f":2.6},{"n":"Black beans, cooked","cat":"leg","por":"100 g","kcal":132,"p":8.9,"c":24,"f":0.5},{"n":"Cannellini beans, cooked","cat":"leg","por":"100 g","kcal":139,"p":9.7,"c":25,"f":0.6},{"n":"Borlotti beans, cooked","cat":"leg","por":"100 g","kcal":143,"p":9,"c":26,"f":0.7},{"n":"Edamame, shelled","cat":"leg","por":"100 g","kcal":121,"p":11,"c":9,"f":5.2},{"n":"Green peas, cooked","cat":"leg","por":"100 g","kcal":84,"p":5.4,"c":16,"f":0.4},{"n":"Hummus","cat":"leg","por":"50 g","kcal":133,"p":4,"c":7,"f":10},{"n":"Tofu, firm","cat":"leg","por":"150 g","kcal":217,"p":26,"c":4,"f":13},{"n":"Tempeh","cat":"leg","por":"100 g","kcal":192,"p":20,"c":8,"f":11},{"n":"Falafel, baked","cat":"leg","por":"100 g","kcal":245,"p":13,"c":26,"f":10},{"n":"Lupini beans","cat":"leg","por":"100 g","kcal":119,"p":16,"c":10,"f":3},{"n":"Olive oil","cat":"fat","por":"1 tbsp 13 g","kcal":119,"p":0,"c":0,"f":13.5},{"n":"Butter","cat":"fat","por":"10 g","kcal":72,"p":0.1,"c":0,"f":8.1},{"n":"Avocado","cat":"fat","por":"1/2 medium","kcal":120,"p":1.5,"c":6,"f":11},{"n":"Almonds","cat":"fat","por":"15 g","kcal":87,"p":3.2,"c":3.2,"f":7.5},{"n":"Walnuts","cat":"fat","por":"15 g","kcal":98,"p":2.3,"c":2,"f":9.8},{"n":"Cashews","cat":"fat","por":"15 g","kcal":83,"p":2.7,"c":4.5,"f":6.6},{"n":"Hazelnuts","cat":"fat","por":"15 g","kcal":94,"p":2.2,"c":2.5,"f":9.1},{"n":"Pistachios","cat":"fat","por":"15 g","kcal":84,"p":3,"c":4,"f":6.8},{"n":"Peanut butter","cat":"fat","por":"1 tbsp 16 g","kcal":94,"p":4,"c":3.2,"f":8},{"n":"Almond butter","cat":"fat","por":"1 tbsp 16 g","kcal":98,"p":3.4,"c":3,"f":8.9},{"n":"Chia seeds","cat":"fat","por":"10 g","kcal":49,"p":1.7,"c":4.2,"f":3.1},{"n":"Flax seeds, ground","cat":"fat","por":"10 g","kcal":53,"p":1.8,"c":2.9,"f":4.2},{"n":"Pumpkin seeds","cat":"fat","por":"15 g","kcal":84,"p":4.5,"c":1.6,"f":7.3},{"n":"Sunflower seeds","cat":"fat","por":"15 g","kcal":88,"p":3.1,"c":3,"f":7.7},{"n":"Tahini","cat":"fat","por":"1 tbsp 15 g","kcal":89,"p":2.6,"c":3.2,"f":8.1},{"n":"Dark chocolate 85%","cat":"fat","por":"20 g","kcal":120,"p":2,"c":6,"f":9.5},{"n":"Coconut, shredded","cat":"fat","por":"15 g","kcal":99,"p":1,"c":4,"f":9.4},{"n":"Pesto","cat":"fat","por":"1 tbsp 16 g","kcal":82,"p":1.4,"c":1,"f":8},{"n":"Honey","cat":"drink","por":"1 tbsp 21 g","kcal":64,"p":0,"c":17,"f":0},{"n":"Maple syrup","cat":"drink","por":"1 tbsp 20 g","kcal":52,"p":0,"c":13,"f":0},{"n":"Jam","cat":"drink","por":"1 tbsp 20 g","kcal":56,"p":0.1,"c":14,"f":0},{"n":"Orange juice","cat":"drink","por":"200 ml","kcal":90,"p":1.4,"c":21,"f":0.4},{"n":"Isotonic sports drink","cat":"drink","por":"500 ml","kcal":140,"p":0,"c":34,"f":0},{"n":"Energy gel","cat":"drink","por":"1 gel 32 g","kcal":100,"p":0,"c":25,"f":0},{"n":"Sports bar (carb)","cat":"drink","por":"1 bar 55 g","kcal":210,"p":8,"c":35,"f":4},{"n":"Protein bar","cat":"drink","por":"1 bar 60 g","kcal":220,"p":20,"c":20,"f":7},{"n":"Cappuccino","cat":"drink","por":"1 cup","kcal":70,"p":4,"c":6,"f":3.5},{"n":"Espresso","cat":"drink","por":"1 shot","kcal":2,"p":0.1,"c":0,"f":0},{"n":"Electrolyte tab","cat":"drink","por":"1 tab","kcal":8,"p":0,"c":1.7,"f":0},{"n":"Beer","cat":"drink","por":"330 ml","kcal":142,"p":1.5,"c":11,"f":0},{"n":"Red wine","cat":"drink","por":"150 ml","kcal":125,"p":0.1,"c":4,"f":0},{"n":"Rice cakes + peanut butter","cat":"snack","por":"2 + 1 tbsp","kcal":164,"p":5.5,"c":18,"f":8.5},{"n":"Bread + honey","cat":"snack","por":"1 slice + 1 tbsp","kcal":163,"p":4,"c":34,"f":1.5},{"n":"Toast + jam","cat":"snack","por":"1 slice + 1 tbsp","kcal":162,"p":3.6,"c":34,"f":1},{"n":"Banana + peanut butter","cat":"snack","por":"1 + 1 tbsp","kcal":199,"p":5.3,"c":30,"f":8.4},{"n":"Trail mix","cat":"snack","por":"30 g","kcal":140,"p":4,"c":12,"f":9},{"n":"Popcorn, air-popped","cat":"snack","por":"20 g","kcal":77,"p":2.4,"c":15,"f":0.9},{"n":"Olives","cat":"snack","por":"30 g","kcal":44,"p":0.3,"c":1,"f":4.4},{"n":"Bruschetta al pomodoro","cat":"snack","por":"1 piece","kcal":120,"p":3,"c":18,"f":4},{"n":"Parmigiana di melanzane","cat":"snack","por":"200 g","kcal":280,"p":12,"c":14,"f":20},{"n":"Minestrone soup","cat":"snack","por":"300 ml","kcal":120,"p":5,"c":18,"f":3}],"foodCats":[["prot","Meat, fish & eggs"],["dairy","Dairy & protein"],["carb","Grains & carbs"],["bread","Bread & bakery"],["fruit","Fruit"],["veg","Vegetables"],["leg","Legumes & tofu"],["fat","Nuts, seeds & fats"],["drink","Drinks & fuel"],["snack","Snacks & dishes"]],"lib":[{"n":"90/90 breathing, feet on wall","cat":"mo","rx":"2×5 breaths","eq":"Wall","mod":"mob","use":0},{"n":"90/90 hip switch","cat":"mo","rx":"2×8-10 slow","eq":"Bodyweight","mod":"mob","use":0},{"n":"90/90 lift-off","cat":"mo","rx":"2×5/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Ab wheel rollout, knees","cat":"co","rx":"3×8-12","eq":"Ab wheel","mod":"cali","use":0},{"n":"Active hang","cat":"pl","rx":"3×20-30 sec","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Adductor rock-back","cat":"mo","rx":"2×10/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Air squat","eq":"Bodyweight","rx":"10 controlled reps","cat":"sq","use":1,"mod":"cali"},{"n":"Alternating kettlebell clean","cat":"pu","rx":"3×10 alt","eq":"Kettlebell","mod":"kb","use":0},{"n":"Alternating kettlebell swing","cat":"hi","rx":"3×16-20 alt","eq":"Kettlebell","mod":"kb","use":0},{"n":"American swing (overhead)","cat":"hi","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Anderson squat (from pins)","cat":"sq","rx":"4×3","eq":"Barbell + rack","mod":"bb","use":0},{"n":"Ankle CARs","cat":"mo","rx":"5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Ankle circles + calf raises","eq":"Bodyweight","rx":"10 circles/side + 10 calf raises","cat":"warm","use":0,"mod":"mob"},{"n":"Ankle eversion/inversion rocks","cat":"mo","rx":"2×10/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Ankle rocker on step","cat":"mo","rx":"2×10/side","eq":"Step","mod":"mob","use":0},{"n":"Ankle/calf prep","eq":"Bodyweight","rx":"10 ankle circles/side + 10 calf raises","cat":"warm","use":0,"mod":"mob"},{"n":"Arch hold (superman)","cat":"co","rx":"3×20-30 sec","eq":"Bodyweight","mod":"cali","use":0},{"n":"Arch rock","cat":"co","rx":"3×12-16","eq":"Bodyweight","mod":"cali","use":0},{"n":"Archer pull-up","cat":"pl","rx":"3×3-4/side","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Archer push-up","cat":"pu","rx":"3×5-8/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Archer ring row","cat":"pl","rx":"3×5-6/side","eq":"Rings","mod":"cali","use":0},{"n":"Armor building complex (2-1-3)","cat":"en","rx":"5 rounds","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Arnold press","cat":"pu","rx":"3×8-10","eq":"Dumbbells","mod":"db","use":0},{"n":"Assault bike intervals","cat":"en","rx":"8×30 sec hard / 90 easy","eq":"Air bike","mod":"cardio","use":0},{"n":"Assault bike, steady","cat":"en","rx":"20-30 min Zone 2","eq":"Air bike","mod":"cardio","use":0},{"n":"Assisted pistol squat","cat":"sq","rx":"3×4-6/side","eq":"Pole or band","mod":"cali","use":0},{"n":"Assisted pull-up or row","eq":"Pull-up bar or barbell","rx":"2-3 ramp sets of 3-5 reps","cat":"pl","use":0,"mod":"bb"},{"n":"Back lever, tuck","cat":"co","rx":"4×8-15 sec","eq":"Rings or bar","mod":"cali","use":0},{"n":"Back squat, high-bar","cat":"sq","rx":"5×5 or 4×6-8","eq":"Barbell","mod":"bb","use":0},{"n":"Back squat, low-bar","cat":"sq","rx":"5×5","eq":"Barbell","mod":"bb","use":0},{"n":"Back-rack walking lunge","cat":"sq","rx":"3×10-12 steps","eq":"Barbell","mod":"bb","use":0},{"n":"Band pull-apart","cat":"mo","rx":"2×15-20","eq":"Band","mod":"mob","use":0},{"n":"Band shoulder dislocate","cat":"mo","rx":"2×8-10","eq":"Band or stick","mod":"mob","use":0},{"n":"Banded kettlebell swing","cat":"hi","rx":"4×8","eq":"Kettlebell + band","mod":"kb","use":0},{"n":"Barbell ab rollout kneeling","cat":"co","rx":"3×8-10","eq":"Barbell + plates","mod":"bb","use":0},{"n":"Barbell bear complex","cat":"en","rx":"5 rounds","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell box step-over","cat":"en","rx":"3×10 alt","eq":"Barbell + box","mod":"bb","use":0},{"n":"Barbell calf raise","cat":"sq","rx":"4×10-15","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell complex: row+clean+press+squat","cat":"en","rx":"4 rounds ×4 each","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell curl","cat":"pl","rx":"3×8-12","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell front-rack carry","cat":"ca","rx":"3×20-30 m","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell glute bridge","cat":"hi","rx":"3×10-12","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell good morning","cat":"hi","rx":"3×8-10","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell hack squat","cat":"sq","rx":"3×8-10","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell hip thrust","cat":"hi","rx":"4×8-12","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Barbell overhead carry","cat":"ca","rx":"3×15-20 m","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell overhead hold","cat":"co","rx":"3×20-30 sec","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell rollout","cat":"co","rx":"3×8-10","eq":"Barbell + plates","mod":"bb","use":0},{"n":"Barbell romanian deadlift, snatch grip","cat":"hi","rx":"3×8","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell shrug","cat":"hi","rx":"3×10-12","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell situp press","cat":"co","rx":"3×8","eq":"Barbell light","mod":"bb","use":0},{"n":"Barbell skull crusher","cat":"pu","rx":"3×10-12","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell sots press","cat":"pu","rx":"3×3-5 light","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell step-up","cat":"sq","rx":"3×6-8/side","eq":"Barbell + box","mod":"bb","use":0},{"n":"Barbell suitcase carry","cat":"ca","rx":"3×20 m/side","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell upright row","cat":"pl","rx":"3×10-12","eq":"Barbell","mod":"bb","use":0},{"n":"Barbell wrist curl","cat":"pl","rx":"3×12-15","eq":"Barbell","mod":"bb","use":0},{"n":"Bear crawl","cat":"en","rx":"3×15-20 m","eq":"Bodyweight","mod":"cali","use":1},{"n":"Behind-the-neck press, light","cat":"pu","rx":"3×8 light","eq":"Barbell","mod":"bb","use":0},{"n":"Bench dip","cat":"pu","rx":"3×10-15","eq":"Bench","mod":"cali","use":0},{"n":"Bench press","cat":"pu","rx":"5×5 or 4×6-8","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Bent-over row","cat":"pl","rx":"4×6-10","eq":"Barbell","mod":"bb","use":0},{"n":"Bike","eq":"Bike","rx":"4 rounds not for time: 5 min Zone 2 each round","cat":"en","use":0,"mod":"cardio"},{"n":"Bird dog","eq":"Bodyweight","rx":"2 x 8/side with 2 sec pause","cat":"co","use":1,"mod":"cali"},{"n":"Block pull / rack pull","cat":"hi","rx":"4×3-5","eq":"Barbell + blocks","mod":"bb","use":0},{"n":"Board / pin bench press","cat":"pu","rx":"4×3-5","eq":"Barbell + rack","mod":"bb","use":0},{"n":"Bottoms-up carry","cat":"ca","rx":"3×15-20 m/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Bottoms-up kettlebell press","cat":"pu","rx":"3×4-6/side light","eq":"Kettlebell","mod":"kb","use":0},{"n":"Box breathing 4-4-4-4","cat":"mo","rx":"5 min","eq":"Bodyweight","mod":"mob","use":0},{"n":"Box pistol squat","cat":"sq","rx":"3×5-6/side","eq":"Box","mod":"cali","use":0},{"n":"Box squat","cat":"sq","rx":"4×5","eq":"Barbell + box","mod":"bb","use":0},{"n":"Bridge (back bend)","cat":"mo","rx":"3×15-30 sec","eq":"Bodyweight","mod":"cali","use":0},{"n":"Broad jump","cat":"en","rx":"5×3","eq":"Bodyweight","mod":"cali","use":0},{"n":"Bulgarian split squat","cat":"sq","rx":"3×8-10/side","eq":"Bench","mod":"cali","use":0},{"n":"Bulgarian split squat, barbell","cat":"sq","rx":"3×6-8/side","eq":"Barbell","mod":"bb","use":0},{"n":"Burpee","cat":"en","rx":"3-5×8-12","eq":"Bodyweight","mod":"cali","use":0},{"n":"Burpee broad jump","cat":"en","rx":"4×6-8","eq":"Bodyweight","mod":"cali","use":0},{"n":"Burpee over box","cat":"en","rx":"4×8-10","eq":"Box","mod":"cali","use":0},{"n":"Butterfly stretch","cat":"mo","rx":"60-90 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Calf stretch, bent knee (soleus)","cat":"mo","rx":"45-60 sec/side","eq":"Wall","mod":"mob","use":0},{"n":"Calf, hip flexor, hamstring stretch","eq":"Bodyweight","rx":"30-45 sec each position","cat":"mo","use":0,"mod":"mob"},{"n":"Calves, hip flexors, hamstrings, thoracic rotation","eq":"Bodyweight","rx":"10 min total","cat":"mo","use":0,"mod":"mob"},{"n":"Cat-cow","cat":"mo","rx":"2×10 slow","eq":"Bodyweight","mod":"mob","use":0},{"n":"Chest-supported DB row","cat":"pl","rx":"3×10-12","eq":"Dumbbells + bench","mod":"db","use":0},{"n":"Chest-supported incline row","cat":"pl","rx":"3×10","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Chest-supported KB row","cat":"pl","rx":"3×10-12","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Chest-to-bar pull-up","cat":"pl","rx":"3×3-6","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Child's pose with lat reach","cat":"mo","rx":"45-60 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Chin tuck","cat":"mo","rx":"2×10","eq":"Bodyweight","mod":"mob","use":0},{"n":"Chin-up, underhand","cat":"pl","rx":"3-4×4-8","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Clap / plyo push-up","cat":"pu","rx":"4×4-6","eq":"Bodyweight","mod":"cali","use":0},{"n":"Clean & jerk","cat":"en","rx":"5×1-2","eq":"Barbell","mod":"bb","use":0},{"n":"Clean high pull","cat":"hi","rx":"4×3","eq":"Barbell","mod":"bb","use":0},{"n":"Clean pull","cat":"hi","rx":"4×3","eq":"Barbell","mod":"bb","use":0},{"n":"Close-grip bench press","cat":"pu","rx":"4×6-8","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Cobra stretch","cat":"mo","rx":"2×30-45 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Commando pull-up","cat":"pl","rx":"3×3-5/side","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Copenhagen plank","cat":"co","rx":"3×15-25 sec/side","eq":"Bench","mod":"cali","use":0},{"n":"Cossack squat","cat":"sq","rx":"3×6-8/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Couch stretch","cat":"mo","rx":"60-90 sec/side","eq":"Wall or bench","mod":"mob","use":1},{"n":"Crab walk","cat":"en","rx":"3×10-15 m","eq":"Bodyweight","mod":"cali","use":0},{"n":"Cradle / figure-4 stretch","cat":"mo","rx":"45-60 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Crocodile breathing","cat":"mo","rx":"2 min","eq":"Bodyweight","mod":"mob","use":0},{"n":"Cross-body carry","cat":"ca","rx":"3×30 m/side","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Cross-body shoulder stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Dead bug","eq":"Bodyweight","rx":"2 x 8/side, slow exhale","cat":"co","use":0,"mod":"cali"},{"n":"Dead hang","cat":"pl","rx":"3×30-60 sec","eq":"Pull-up bar","mod":"cali","use":1},{"n":"Dead hang + scapular pull-up","eq":"Pull-up bar","rx":"20 sec hang + 6 scap pulls","cat":"pl","use":0,"mod":"cali"},{"n":"Dead hang or doorway hang","eq":"Pull-up bar","rx":"15-20 sec easy hold","cat":"pl","use":0,"mod":"cali"},{"n":"Dead-stop swing","cat":"hi","rx":"5×5 powerful","eq":"Kettlebell","mod":"kb","use":0},{"n":"Deadlift","eq":"Barbell or kettlebell","rx":"E2MOM 14 for quality: 5 clean reps","cat":"hi","use":0,"mod":"kb"},{"n":"Deadlift, conventional","cat":"hi","rx":"5×3-5","eq":"Barbell","mod":"bb","use":0},{"n":"Deadlift, touch-and-go","cat":"hi","rx":"3×8","eq":"Barbell","mod":"bb","use":0},{"n":"Decline bench press","cat":"pu","rx":"3×8-10","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Decline push-up","cat":"pu","rx":"3×8-12","eq":"Bodyweight + box","mod":"cali","use":0},{"n":"Deep squat pry","cat":"mo","rx":"2×45-60 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Deep squat with reach","cat":"mo","rx":"2×6/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Deficit deadlift","cat":"hi","rx":"3×3-5","eq":"Barbell + plate","mod":"bb","use":0},{"n":"Deficit push-up","cat":"pu","rx":"3×8-10","eq":"Parallettes","mod":"cali","use":0},{"n":"Devil press","cat":"en","rx":"4×6-8","eq":"Dumbbells","mod":"db","use":0},{"n":"Diamond push-up","cat":"pu","rx":"3×8-12","eq":"Bodyweight","mod":"cali","use":0},{"n":"Dip negative (5 sec)","cat":"pu","rx":"4×3-4","eq":"Dip bars","mod":"cali","use":0},{"n":"Dive-bomber push-up","cat":"pu","rx":"3×6-8","eq":"Bodyweight","mod":"cali","use":0},{"n":"Doorway pec stretch","cat":"mo","rx":"45-60 sec/side","eq":"Doorway","mod":"mob","use":0},{"n":"Double front-rack KB squat","cat":"sq","rx":"4×6-8","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Double KB deadlift","cat":"hi","rx":"4×8-10","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Double kettlebell clean","cat":"pu","rx":"4×5","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Double kettlebell press","cat":"pu","rx":"4×5-8","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Double kettlebell swing","cat":"hi","rx":"4×8-10","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Downward dog pedal","cat":"mo","rx":"2×10 alt","eq":"Bodyweight","mod":"mob","use":0},{"n":"Drag curl","cat":"pl","rx":"3×10","eq":"Barbell","mod":"bb","use":0},{"n":"Dragon flag progression","cat":"co","rx":"3×3-6","eq":"Bench","mod":"cali","use":0},{"n":"Dumbbell bench press","cat":"pu","rx":"4×8-10","eq":"Dumbbells + bench","mod":"db","use":0},{"n":"Dumbbell Bulgarian split squat","cat":"sq","rx":"3×8-10/side","eq":"Dumbbell + bench","mod":"db","use":0},{"n":"Dumbbell clean & press","cat":"en","rx":"3×6/side","eq":"Dumbbell","mod":"db","use":0},{"n":"Dumbbell curl","cat":"pl","rx":"3×10-12","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell farmer carry","cat":"ca","rx":"3×30-40 m","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell fly","cat":"pu","rx":"3×10-12","eq":"Dumbbells + bench","mod":"db","use":0},{"n":"Dumbbell goblet squat","cat":"sq","rx":"3×8-12","eq":"Dumbbell","mod":"db","use":0},{"n":"Dumbbell lateral raise","cat":"pu","rx":"3×12-15","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell pullover","cat":"pu","rx":"3×10-12","eq":"Dumbbell + bench","mod":"db","use":0},{"n":"Dumbbell RDL","cat":"hi","rx":"3×8-10","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell rear-delt fly","cat":"pl","rx":"3×12-15","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell reverse lunge","cat":"sq","rx":"3×8/side","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell shoulder press","cat":"pu","rx":"3×8-10","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell snatch","cat":"hi","rx":"4×6-8/side","eq":"Dumbbell","mod":"db","use":0},{"n":"Dumbbell step-up","cat":"sq","rx":"3×8/side","eq":"Dumbbell + box","mod":"db","use":0},{"n":"Dumbbell suitcase carry","cat":"ca","rx":"3×30 m/side","eq":"Dumbbell","mod":"db","use":0},{"n":"Dumbbell swing","cat":"hi","rx":"3×12-15","eq":"Dumbbell","mod":"db","use":0},{"n":"Dumbbell thruster","cat":"en","rx":"3×10-12","eq":"Dumbbells","mod":"db","use":0},{"n":"Dumbbell walking lunge","cat":"sq","rx":"3×12-16 steps","eq":"Dumbbells","mod":"db","use":0},{"n":"Easy bike","eq":"Bike","rx":"5 min conversational pace","cat":"warm","use":0,"mod":"cardio"},{"n":"Easy bike or rope","eq":"Bike or rope","rx":"2-3 min easy","cat":"warm","use":0,"mod":"cardio"},{"n":"Easy rope, march, or bike","eq":"Rope or bike","rx":"2-3 min easy","cat":"warm","use":0,"mod":"cardio"},{"n":"Easy walk","eq":"Treadmill or outdoor","rx":"2 min gradually increasing pace","cat":"warm","use":5,"mod":"cardio"},{"n":"Elbow CARs","cat":"mo","rx":"5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Elbow lever","cat":"co","rx":"4×10-20 sec","eq":"Floor or parallettes","mod":"cali","use":0},{"n":"Elephant walk","cat":"mo","rx":"2×10-14 alt","eq":"Bodyweight","mod":"mob","use":0},{"n":"Elevated pike push-up","cat":"pu","rx":"3×5-8","eq":"Bodyweight + box","mod":"cali","use":0},{"n":"Every-minute swings","cat":"en","rx":"EMOM 10×10","eq":"Kettlebell","mod":"kb","use":0},{"n":"Farmer carry","eq":"Kettlebell(s)","rx":"20 sec each round per round","cat":"ca","use":1,"mod":"kb"},{"n":"Farmer carry (2 KB)","cat":"ca","rx":"3-4×30-40 m","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Farmer or suitcase carry","eq":"Kettlebell(s)","rx":"2-3 x 30 sec","cat":"ca","use":0,"mod":"kb"},{"n":"Fartlek run","cat":"en","rx":"30 min varied pace","eq":"Outdoor","mod":"cardio","use":0},{"n":"Feet-elevated inverted row","cat":"pl","rx":"3×6-10","eq":"Bar + box","mod":"cali","use":0},{"n":"Fire hydrant circle","cat":"mo","rx":"2×8/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"First-rib / upper-trap ball release","cat":"mo","rx":"60 sec/side","eq":"Lacrosse ball","mod":"mob","use":0},{"n":"Floor press","cat":"pu","rx":"4×5-8","eq":"Barbell","mod":"bb","use":0},{"n":"Floor slide (snow angel)","cat":"mo","rx":"2×8-10","eq":"Floor","mod":"mob","use":0},{"n":"Foam roll calves","cat":"mo","rx":"60-90 sec/side","eq":"Foam roller","mod":"mob","use":0},{"n":"Foam roll glutes","cat":"mo","rx":"60-90 sec/side","eq":"Foam roller","mod":"mob","use":0},{"n":"Foam roll lats","cat":"mo","rx":"60-90 sec/side","eq":"Foam roller","mod":"mob","use":0},{"n":"Foam roll quads","cat":"mo","rx":"60-90 sec/side","eq":"Foam roller","mod":"mob","use":0},{"n":"Foam roll upper back","cat":"mo","rx":"90 sec","eq":"Foam roller","mod":"mob","use":0},{"n":"Forearm smash with ball","cat":"mo","rx":"60 sec/side","eq":"Lacrosse ball","mod":"mob","use":0},{"n":"Forward lunge, goblet","cat":"sq","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Freestanding handstand practice","cat":"co","rx":"8-10×10-20 sec","eq":"Bodyweight","mod":"cali","use":0},{"n":"Frog stand / crow pose","cat":"co","rx":"4×15-30 sec","eq":"Bodyweight","mod":"cali","use":0},{"n":"Frog stretch rock","cat":"mo","rx":"2×10-12","eq":"Bodyweight","mod":"mob","use":0},{"n":"Front lever, advanced tuck","cat":"pl","rx":"4×5-10 sec","eq":"Rings or bar","mod":"cali","use":0},{"n":"Front lever, one-leg","cat":"pl","rx":"4×5-8 sec","eq":"Rings or bar","mod":"cali","use":0},{"n":"Front lever, tuck","cat":"pl","rx":"4×8-15 sec","eq":"Rings or bar","mod":"cali","use":0},{"n":"Front squat","cat":"sq","rx":"4×4-6","eq":"Barbell","mod":"bb","use":0},{"n":"Front-rack carry","cat":"ca","rx":"3×30 m","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Front-rack KB squat, single","cat":"sq","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Front-rack reverse lunge, barbell","cat":"sq","rx":"3×6/side","eq":"Barbell","mod":"bb","use":0},{"n":"German hang","cat":"mo","rx":"3×15-20 sec","eq":"Rings","mod":"cali","use":0},{"n":"Get-up sit-up","cat":"co","rx":"3×5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Glute bridge","eq":"Bodyweight","rx":"10 controlled reps","cat":"hi","use":0,"mod":"cali"},{"n":"Glute smash with ball","cat":"mo","rx":"60 sec/side","eq":"Lacrosse ball","mod":"mob","use":0},{"n":"Goblet squat","cat":"sq","rx":"3-4×6-10","eq":"Kettlebell","mod":"kb","use":3},{"n":"Goblet squat + curl","cat":"sq","rx":"3×8","eq":"Kettlebell","mod":"kb","use":0},{"n":"Goblet squat or front squat","eq":"Kettlebell or barbell","rx":"2-3 ramp sets of 5 reps","cat":"sq","use":0,"mod":"kb"},{"n":"Goblet/front squat","eq":"Kettlebell or barbell","rx":"AMRAP 12 for quality: 6 reps per round","cat":"sq","use":1,"mod":"kb"},{"n":"Good morning stretch, bodyweight","cat":"mo","rx":"2×10","eq":"Bodyweight","mod":"mob","use":0},{"n":"Gorilla row","cat":"pl","rx":"3×8-10/side","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Half get-up (to elbow)","cat":"co","rx":"3×3-5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Half get-up (to hand)","cat":"co","rx":"3×3/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Half-kneeling KB press","cat":"pu","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Half-split (runner's hamstring)","cat":"mo","rx":"45-60 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Hammer curl","cat":"pl","rx":"3×10-12","eq":"Dumbbells","mod":"db","use":0},{"n":"Hamstring floss with strap","cat":"mo","rx":"2×10/side","eq":"Strap","mod":"mob","use":0},{"n":"Hamstring, glute, pec, wrist mobility","eq":"Bodyweight","rx":"5-8 min total","cat":"mo","use":0,"mod":"mob"},{"n":"Handstand hold, wall","cat":"co","rx":"4×20-40 sec","eq":"Wall","mod":"cali","use":0},{"n":"Handstand kick-up practice","cat":"co","rx":"8-10 attempts","eq":"Wall","mod":"cali","use":0},{"n":"Handstand push-up negative","cat":"pu","rx":"3×3-5 slow","eq":"Wall","mod":"cali","use":0},{"n":"Hang clean + front squat complex","cat":"en","rx":"4×(2+2)","eq":"Barbell","mod":"bb","use":0},{"n":"Hang from bar (decompression)","cat":"mo","rx":"3×20-40 sec","eq":"Pull-up bar","mod":"mob","use":0},{"n":"Hang power clean","cat":"en","rx":"5×3","eq":"Barbell","mod":"bb","use":0},{"n":"Hang power snatch","cat":"en","rx":"5×2-3","eq":"Barbell","mod":"bb","use":0},{"n":"Hanging knee raise","cat":"co","rx":"3×10-15","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Hanging leg raise","cat":"co","rx":"3×8-12","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Heel walk","cat":"mo","rx":"2×15-20 m","eq":"Bodyweight","mod":"mob","use":0},{"n":"Hill sprints","cat":"en","rx":"6-10×10-15 sec, walk down","eq":"Hill","mod":"cardio","use":0},{"n":"Hindu push-up","cat":"pu","rx":"3×8-10","eq":"Bodyweight","mod":"cali","use":0},{"n":"Hip airplane","cat":"mo","rx":"2×5-6/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Hip CARs, quadruped","cat":"mo","rx":"3-5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Hip CARs, standing","cat":"mo","rx":"3-5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Hip circles + air squats","eq":"Bodyweight","rx":"8 circles/side + 8-10 air squats","cat":"warm","use":0,"mod":"mob"},{"n":"Hip hinge drill","eq":"Bodyweight or dowel","rx":"10 slow reps with neutral spine","cat":"warm","use":0,"mod":"mob"},{"n":"Hip opener","eq":"Bodyweight","rx":"6/side","cat":"warm","use":0,"mod":"mob"},{"n":"Hip thrust, shoulders on bench","cat":"hi","rx":"3×10-15","eq":"Bench","mod":"cali","use":0},{"n":"Hollow hold","eq":"Bodyweight","rx":"15-20 sec every 2 rounds","cat":"co","use":1,"mod":"cali"},{"n":"Hollow rock","cat":"co","rx":"3×12-16","eq":"Bodyweight","mod":"cali","use":0},{"n":"Human flag progression","cat":"co","rx":"4×3-8 sec/side","eq":"Vertical pole","mod":"cali","use":0},{"n":"Hurdler stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Inchworm","eq":"Bodyweight","rx":"5 reps","cat":"warm","use":0,"mod":"mob"},{"n":"Incline adjustment","eq":"Treadmill","rx":"Increase/decrease incline to stay in Zone 2","cat":"en","use":0,"mod":"cardio"},{"n":"Incline bench press","cat":"pu","rx":"4×6-10","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Incline dumbbell press","cat":"pu","rx":"3×8-12","eq":"Dumbbells + bench","mod":"db","use":0},{"n":"Incline push-up","cat":"pu","rx":"3×10-15","eq":"Bodyweight + box","mod":"cali","use":0},{"n":"Incline push-up or strict press pattern","eq":"Bodyweight or barbell","rx":"6 easy reps","cat":"pu","use":0,"mod":"bb"},{"n":"Inverted row","cat":"pl","rx":"3×8-12","eq":"Bar or rings","mod":"cali","use":0},{"n":"Inverted row on barbell","cat":"pl","rx":"3×8-12","eq":"Barbell + rack","mod":"bb","use":0},{"n":"Jefferson curl, light","cat":"mo","rx":"2×5 slow","eq":"Light weight","mod":"mob","use":0},{"n":"JM press","cat":"pu","rx":"3×8-10","eq":"Barbell","mod":"bb","use":0},{"n":"Jump rope singles or march","eq":"Rope or bodyweight","rx":"20-30 sec","cat":"en","use":0,"mod":"cardio"},{"n":"Jump rope, crossovers","cat":"en","rx":"6×30 sec","eq":"Rope","mod":"cardio","use":0},{"n":"Jump rope, double-unders","cat":"en","rx":"8×20-30 sec practice","eq":"Rope","mod":"cardio","use":0},{"n":"Jump rope, singles","cat":"en","rx":"5-10×60 sec","eq":"Rope","mod":"cardio","use":0},{"n":"Jump squat","cat":"sq","rx":"4×6-8","eq":"Bodyweight","mod":"cali","use":0},{"n":"Jumping lunge","cat":"sq","rx":"4×8-10 alt","eq":"Bodyweight","mod":"cali","use":0},{"n":"KB Bulgarian split squat","cat":"sq","rx":"3×8-10/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"KB carry medley","cat":"en","rx":"3 rounds ×3 carries","eq":"2 kettlebells","mod":"kb","use":0},{"n":"KB clean & push press flow","cat":"en","rx":"4×5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"KB complex: clean+press+squat","cat":"en","rx":"4-5 rounds ×5 each/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"KB complex: swing+goblet squat","cat":"en","rx":"EMOM 10: 8+6","eq":"Kettlebell","mod":"kb","use":0},{"n":"KB or barbell deadlift","eq":"Kettlebell or barbell","rx":"2-3 ramp sets of 5 reps","cat":"hi","use":0,"mod":"kb"},{"n":"KB snatch test pacing","cat":"en","rx":"5×10/side @steady","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell around-the-world","cat":"warm","rx":"2×8/direction","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell bench press","cat":"pu","rx":"3×8-10","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Kettlebell bent press","cat":"co","rx":"3×3/side light","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell box squat","cat":"sq","rx":"3×8-10","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell clean","cat":"pu","rx":"4×5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell clean & jerk (long cycle)","cat":"pu","rx":"5×3-5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell clean & press","cat":"pu","rx":"4×4-6/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell cossack squat","cat":"sq","rx":"3×5-6/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell curl","cat":"pl","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell dead bug press","cat":"co","rx":"3×8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell dead clean","cat":"pu","rx":"4×5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell dead snatch","cat":"hi","rx":"4×4/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell deadlift","cat":"hi","rx":"3×8-10","eq":"Kettlebell","mod":"kb","use":2},{"n":"Kettlebell figure-8","cat":"warm","rx":"2×10/direction","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell floor press","cat":"pu","rx":"3×8-10/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell good morning","cat":"hi","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell half snatch","cat":"hi","rx":"4×6/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell halo","eq":"Kettlebell","rx":"8/side slow and smooth","cat":"warm","use":2,"mod":"kb"},{"n":"Kettlebell halo, standing","cat":"warm","rx":"2×8/direction","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell high pull","cat":"hi","rx":"3×8-10/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell high row","cat":"pl","rx":"3×10/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell hip thrust","cat":"hi","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell jerk","cat":"pu","rx":"5×3-5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell pull-through plank","cat":"co","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell pullover","cat":"pu","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell push press","cat":"pu","rx":"4×5-6/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell romanian deadlift","cat":"hi","rx":"3×8-10","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Kettlebell russian twist","cat":"co","rx":"3×16-20 alt","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell side bend","cat":"co","rx":"3×10-12/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell sit-up press","cat":"co","rx":"3×8-10","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell skull crusher","cat":"pu","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell slingshot","cat":"warm","rx":"2×10/direction","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell snatch","cat":"hi","rx":"4×5-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell step-up","cat":"sq","rx":"3×8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell strict press","cat":"pu","rx":"4×5-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell sumo squat","cat":"sq","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell swing","eq":"Kettlebell","rx":"8-10 reps per round","cat":"hi","use":3,"mod":"kb"},{"n":"Kettlebell swing clean","cat":"hi","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell swing or KB deadlift","eq":"Kettlebell","rx":"3-5 easy sets of 8-10 reps","cat":"hi","use":0,"mod":"kb"},{"n":"Kettlebell swing, one-arm","cat":"hi","rx":"3×8-10/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell swing, two-hand","cat":"hi","rx":"3-5×10-15","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell thruster","cat":"sq","rx":"3×8-10","eq":"1-2 kettlebells","mod":"kb","use":0},{"n":"Kettlebell upright row","cat":"pl","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell windmill, high","cat":"co","rx":"3×3-5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell windmill, low","cat":"co","rx":"3×4-6/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Kettlebell Z-press","cat":"pu","rx":"3×6-8","eq":"Kettlebell","mod":"kb","use":0},{"n":"Knee CARs","cat":"mo","rx":"5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Knee-to-wall ankle rock","cat":"mo","rx":"2×10-12/side","eq":"Wall","mod":"mob","use":0},{"n":"Kneeling hip flexor stretch + reach","cat":"mo","rx":"45-60 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Korean dip","cat":"pu","rx":"3×4-6","eq":"Bar","mod":"cali","use":0},{"n":"L-sit pull-up","cat":"pl","rx":"3×3-5","eq":"Pull-up bar","mod":"cali","use":0},{"n":"L-sit, full","cat":"co","rx":"4×8-15 sec","eq":"Parallettes","mod":"cali","use":0},{"n":"L-sit, tuck","cat":"co","rx":"4×10-20 sec","eq":"Parallettes","mod":"cali","use":0},{"n":"Landmine meadows row","cat":"pl","rx":"3×8-10/side","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine press, half-kneeling","cat":"pu","rx":"3×8/side","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine press, standing","cat":"pu","rx":"3×8-10/side","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine RDL","cat":"hi","rx":"3×8-10","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine reverse lunge + press","cat":"en","rx":"3×6/side","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine rotation","cat":"co","rx":"3×8-10/side","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine single-leg RDL","cat":"hi","rx":"3×6/side","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Landmine squat","cat":"sq","rx":"3×8-10","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"Lat + hip flexor + calf mobility","eq":"Bodyweight","rx":"5-8 min total","cat":"mo","use":0,"mod":"mob"},{"n":"Lateral lunge, goblet","cat":"sq","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Levator scapulae stretch","cat":"mo","rx":"30-45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Lizard crawl","cat":"en","rx":"3×8-10 m","eq":"Bodyweight","mod":"cali","use":0},{"n":"Lizard pose","cat":"mo","rx":"45-60 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Mixed carry (rack + suitcase)","cat":"ca","rx":"3×30 m/side","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Mountain climber","cat":"en","rx":"3×30-40 alt","eq":"Bodyweight","mod":"cali","use":0},{"n":"Muscle clean","cat":"en","rx":"4×3 light","eq":"Barbell","mod":"bb","use":0},{"n":"Muscle-up progression (transition)","cat":"pl","rx":"4×2-3","eq":"Rings or bar","mod":"cali","use":0},{"n":"Nasal-only easy breathing walk","cat":"mo","rx":"5-10 min","eq":"Bodyweight","mod":"mob","use":0},{"n":"Neck CARs","cat":"mo","rx":"3-5/direction slow","eq":"Bodyweight","mod":"mob","use":0},{"n":"Neutral-grip pull-up","cat":"pl","rx":"3×5-8","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Nordic curl (assisted)","cat":"hi","rx":"3×3-5","eq":"Partner or anchor","mod":"cali","use":0},{"n":"Offset KB split squat","cat":"sq","rx":"3×8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Offset-load KB squat","cat":"sq","rx":"3×6/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"One-arm bent-over KB row","cat":"pl","rx":"3×8-10/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"One-arm dumbbell row","cat":"pl","rx":"3×8-10/side","eq":"Dumbbell + bench","mod":"db","use":0},{"n":"One-arm hang","cat":"pl","rx":"3×10-20 sec/side","eq":"Pull-up bar","mod":"cali","use":0},{"n":"One-arm kettlebell row","eq":"Kettlebell","rx":"6/side easy","cat":"pl","use":0,"mod":"kb"},{"n":"One-arm push-up progression","cat":"pu","rx":"3×3-5/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"One-arm row","eq":"Kettlebell","rx":"6-8/side","cat":"pl","use":0,"mod":"kb"},{"n":"Open book (T-spine rotation)","cat":"mo","rx":"2×8/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Overhead KB carry","cat":"ca","rx":"3×20-30 m/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Overhead KB reverse lunge","cat":"sq","rx":"3×5/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Overhead press","eq":"Barbell or kettlebell","rx":"5 clean reps","cat":"pu","use":0,"mod":"kb"},{"n":"Overhead press, strict","cat":"pu","rx":"4-5×3-6","eq":"Barbell","mod":"bb","use":0},{"n":"Overhead squat","cat":"sq","rx":"4×3-5 light","eq":"Barbell","mod":"bb","use":0},{"n":"Overhead triceps extension","cat":"pu","rx":"3×10-12","eq":"Dumbbell","mod":"db","use":0},{"n":"Parallel-bar dip","cat":"pu","rx":"3-4×5-10","eq":"Dip bars","mod":"cali","use":0},{"n":"Pause goblet squat (3 sec)","cat":"sq","rx":"3×5-6","eq":"Kettlebell","mod":"kb","use":0},{"n":"Pause squat (3 sec)","cat":"sq","rx":"4×3-5","eq":"Barbell","mod":"bb","use":0},{"n":"Paused bench press","cat":"pu","rx":"4×3-5","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Paused deadlift (knee)","cat":"hi","rx":"3×3","eq":"Barbell","mod":"bb","use":0},{"n":"Pec smash with ball on wall","cat":"mo","rx":"60 sec/side","eq":"Lacrosse ball","mod":"mob","use":0},{"n":"Pelvic tilt drill","cat":"mo","rx":"2×10","eq":"Bodyweight","mod":"mob","use":0},{"n":"Pendlay row","cat":"pl","rx":"4×5-6","eq":"Barbell","mod":"bb","use":0},{"n":"Pigeon stretch","cat":"mo","rx":"60-90 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Pike push-up","cat":"pu","rx":"3×6-10","eq":"Bodyweight","mod":"cali","use":0},{"n":"Pin press (overhead)","cat":"pu","rx":"4×3","eq":"Barbell + rack","mod":"bb","use":0},{"n":"Pin squat","cat":"sq","rx":"4×3","eq":"Barbell + rack","mod":"bb","use":0},{"n":"Pistol squat","cat":"sq","rx":"3×3-5/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Planche lean","cat":"pu","rx":"4×15-25 sec","eq":"Bodyweight","mod":"cali","use":0},{"n":"Plank","eq":"Bodyweight","rx":"15-20 sec","cat":"co","use":0,"mod":"cali"},{"n":"Plank shoulder tap","cat":"co","rx":"3×16-20 alt","eq":"Bodyweight","mod":"cali","use":0},{"n":"Plank walkout","cat":"co","rx":"3×6-8","eq":"Bodyweight","mod":"cali","use":0},{"n":"Plantar fascia ball roll","cat":"mo","rx":"60 sec/side","eq":"Lacrosse ball","mod":"mob","use":0},{"n":"Power clean","cat":"en","rx":"5×3","eq":"Barbell","mod":"bb","use":0},{"n":"Power jerk","cat":"pu","rx":"5×2-3","eq":"Barbell","mod":"bb","use":0},{"n":"Power snatch","cat":"en","rx":"5×2-3","eq":"Barbell","mod":"bb","use":0},{"n":"Prayer / lat stretch on box","cat":"mo","rx":"45-60 sec","eq":"Box","mod":"mob","use":0},{"n":"Prone Y-T-W raises","cat":"mo","rx":"2×6 each","eq":"Bodyweight","mod":"mob","use":0},{"n":"Pseudo-planche push-up","cat":"pu","rx":"3×5-8","eq":"Bodyweight","mod":"cali","use":0},{"n":"Pull-up negative (5 sec)","cat":"pl","rx":"4×3-4","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Pull-up or row","eq":"Pull-up bar or barbell","rx":"2-3 easy sets of 3-5 reps","cat":"pl","use":0,"mod":"bb"},{"n":"Pull-up, assisted pull-up, or row","eq":"Pull-up bar or barbell","rx":"AMRAP 14 for quality: 3 reps per round","cat":"pl","use":0,"mod":"bb"},{"n":"Pull-up, overhand","cat":"pl","rx":"3-5×3-8","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Push press","cat":"pu","rx":"5×3-5","eq":"Barbell","mod":"bb","use":0},{"n":"Push-up","eq":"Bodyweight","rx":"2 easy sets of 5-8 reps","cat":"pu","use":2,"mod":"cali"},{"n":"Push-up, standard","cat":"pu","rx":"3-4×8-15","eq":"Bodyweight","mod":"cali","use":0},{"n":"Push-up, wide","cat":"pu","rx":"3×10-15","eq":"Bodyweight","mod":"cali","use":0},{"n":"QL side-bend stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Quadruped T-spine reach-through","cat":"mo","rx":"2×8/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Quads, glutes, lats, pecs, ankles","eq":"Bodyweight","rx":"8-10 min total","cat":"mo","use":0,"mod":"mob"},{"n":"Renegade row (DB)","cat":"pl","rx":"3×6-8/side","eq":"Dumbbells","mod":"db","use":0},{"n":"Renegade row (KB)","cat":"pl","rx":"3×6-8/side","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Reverse lunge","eq":"Bodyweight or kettlebell","rx":"6/side easy","cat":"sq","use":2,"mod":"cali"},{"n":"Reverse lunge, KB front rack","cat":"sq","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Reverse nordic (quad stretch)","cat":"mo","rx":"2×6-8","eq":"Bodyweight","mod":"mob","use":0},{"n":"Reverse Turkish get-up","cat":"co","rx":"2×2/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Reverse-grip barbell curl","cat":"pl","rx":"3×10-12","eq":"Barbell","mod":"bb","use":0},{"n":"Ring dip","cat":"pu","rx":"3×4-8","eq":"Rings","mod":"cali","use":0},{"n":"Ring dip push-up (RTO)","cat":"pu","rx":"3×5-8","eq":"Rings","mod":"cali","use":0},{"n":"Ring push-up","cat":"pu","rx":"3×8-12","eq":"Rings","mod":"cali","use":0},{"n":"Ring row","cat":"pl","rx":"3×8-12","eq":"Rings","mod":"cali","use":0},{"n":"Ring support hold","cat":"pu","rx":"4×15-30 sec","eq":"Rings","mod":"cali","use":0},{"n":"RKC plank (hard-style)","cat":"co","rx":"3×15-25 sec","eq":"Bodyweight","mod":"cali","use":0},{"n":"Romanian deadlift","cat":"hi","rx":"3-4×6-10","eq":"Barbell","mod":"bb","use":0},{"n":"Rope footwork or march","eq":"Rope or bodyweight","rx":"4 x 20 sec easy","cat":"warm","use":0,"mod":"cardio"},{"n":"Row erg intervals","cat":"en","rx":"6-8×500 m / 1:1 rest","eq":"Rower","mod":"cardio","use":0},{"n":"Row erg, steady","cat":"en","rx":"20-40 min Zone 2","eq":"Rower","mod":"cardio","use":0},{"n":"Rucking (weighted walk)","cat":"en","rx":"40-60 min, 8-12 kg","eq":"Backpack","mod":"cardio","use":0},{"n":"Safety-position squat walkout","cat":"sq","rx":"3×10 sec","eq":"Barbell","mod":"bb","use":0},{"n":"Scap pull (retraction hold)","cat":"mo","rx":"2×8×3 sec","eq":"Pull-up bar","mod":"mob","use":0},{"n":"Scap push-up","cat":"mo","rx":"2×10-12","eq":"Bodyweight","mod":"mob","use":0},{"n":"Scapular CARs","cat":"mo","rx":"5/direction","eq":"Bodyweight","mod":"mob","use":0},{"n":"Scapular pull-up","cat":"pl","rx":"3×6-10","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Seal row","cat":"pl","rx":"3×8-10","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Seated forward fold","cat":"mo","rx":"60-90 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Seated shin stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Seated straddle reach","cat":"mo","rx":"2×45 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Seesaw kettlebell press","cat":"pu","rx":"3×6-8 alt","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Segmental cat-cow","cat":"mo","rx":"2×5 very slow","eq":"Bodyweight","mod":"mob","use":0},{"n":"Shoulder CARs","cat":"mo","rx":"5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Shoulder circles + hip openers","eq":"Bodyweight","rx":"10 circles each + 6 openers/side","cat":"warm","use":0,"mod":"mob"},{"n":"Shoulder pass-through with stick","cat":"mo","rx":"2×8-10","eq":"Stick or band","mod":"mob","use":0},{"n":"Shrimp squat","cat":"sq","rx":"3×3-5/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Shuttle run 5-10-5","cat":"en","rx":"6-8 reps","eq":"Cones","mod":"cardio","use":0},{"n":"Side plank","eq":"Bodyweight","rx":"15-20 sec alternating sides","cat":"co","use":1,"mod":"cali"},{"n":"Side plank with reach-through","cat":"co","rx":"3×8/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Side-lying windmill","cat":"mo","rx":"2×6-8/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Single-leg barbell RDL","cat":"hi","rx":"3×6/side","eq":"Barbell","mod":"bb","use":0},{"n":"Single-leg calf raise","cat":"sq","rx":"3×12-15/side","eq":"Step","mod":"cali","use":0},{"n":"Single-leg DB RDL","cat":"hi","rx":"3×6-8/side","eq":"Dumbbell","mod":"db","use":0},{"n":"Single-leg glute bridge","cat":"hi","rx":"3×8-10/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Single-leg KB deadlift","cat":"hi","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Single-leg RDL reach (no load)","cat":"mo","rx":"2×6/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Sissy squat","cat":"sq","rx":"3×6-10","eq":"Bodyweight","mod":"cali","use":0},{"n":"Sit-up","cat":"co","rx":"3×15-20","eq":"Bodyweight","mod":"cali","use":0},{"n":"Ski erg intervals","cat":"en","rx":"6×400 m","eq":"Ski erg","mod":"cardio","use":0},{"n":"Skin the cat","cat":"pl","rx":"3×3-5","eq":"Rings","mod":"cali","use":0},{"n":"Sled push / drag","cat":"en","rx":"6-8×20 m","eq":"Sled","mod":"cardio","use":0},{"n":"Sleeper stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Snatch balance","cat":"sq","rx":"4×2-3 light","eq":"Barbell","mod":"bb","use":0},{"n":"Snatch pull","cat":"hi","rx":"4×3","eq":"Barbell","mod":"bb","use":0},{"n":"Snatch-grip deadlift","cat":"hi","rx":"3×5","eq":"Barbell","mod":"bb","use":0},{"n":"Sphinx pry","cat":"mo","rx":"2×45 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Sphinx push-up","cat":"pu","rx":"3×8-10","eq":"Bodyweight","mod":"cali","use":0},{"n":"Split jerk","cat":"pu","rx":"5×2-3","eq":"Barbell","mod":"bb","use":0},{"n":"Split squat","cat":"sq","rx":"3×8-10/side","eq":"Bodyweight","mod":"cali","use":0},{"n":"Split squat, barbell","cat":"sq","rx":"3×6-8/side","eq":"Barbell","mod":"bb","use":0},{"n":"Squat clean","cat":"en","rx":"5×2-3","eq":"Barbell","mod":"bb","use":0},{"n":"Squat snatch","cat":"en","rx":"5×2 light-mod","eq":"Barbell","mod":"bb","use":0},{"n":"Staggered-stance KB deadlift","cat":"hi","rx":"3×8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Stair climbs","cat":"en","rx":"10-15 min","eq":"Stairs","mod":"cardio","use":0},{"n":"Standing calf stretch, straight knee","cat":"mo","rx":"45-60 sec/side","eq":"Wall","mod":"mob","use":0},{"n":"Standing forward fold","cat":"mo","rx":"60-90 sec","eq":"Bodyweight","mod":"mob","use":0},{"n":"Standing hip circle","cat":"mo","rx":"2×8/direction","eq":"Bodyweight","mod":"mob","use":0},{"n":"Standing IT-band adjacent hip stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Standing quad stretch","cat":"mo","rx":"45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Standing thoracic side reach","cat":"mo","rx":"2×6/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Step-back burpee","eq":"Bodyweight","rx":"4-6 controlled reps","cat":"en","use":0,"mod":"cali"},{"n":"Step-up, high box","cat":"sq","rx":"3×8/side","eq":"Box","mod":"cali","use":0},{"n":"Stiff-leg deadlift","cat":"hi","rx":"3×8","eq":"Barbell","mod":"bb","use":0},{"n":"Straight-bar dip","cat":"pu","rx":"3×4-8","eq":"Bar","mod":"cali","use":0},{"n":"Strict overhead press","eq":"Barbell or kettlebell","rx":"2-3 ramp sets of 5 reps","cat":"pu","use":0,"mod":"kb"},{"n":"Suitcase carry","cat":"ca","rx":"3×30-40 m/side","eq":"Kettlebell","mod":"kb","use":3},{"n":"Suitcase deadlift, one KB","cat":"hi","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Sumo deadlift","cat":"hi","rx":"4×3-5","eq":"Barbell","mod":"bb","use":0},{"n":"Sumo kettlebell deadlift","cat":"hi","rx":"3×10-12","eq":"Kettlebell","mod":"kb","use":0},{"n":"Swim intervals","cat":"en","rx":"8-10×50 m / 20 sec rest","eq":"Pool","mod":"cardio","use":0},{"n":"Swim kick set with board","cat":"en","rx":"6×50 m","eq":"Pool + board","mod":"cardio","use":0},{"n":"Swim pull set with buoy","cat":"en","rx":"6×100 m","eq":"Pool + buoy","mod":"cardio","use":0},{"n":"Swim, freestyle steady","cat":"en","rx":"20-40 min easy","eq":"Pool","mod":"cardio","use":0},{"n":"Swing ladder 10-15-25","cat":"en","rx":"3 rounds","eq":"Kettlebell","mod":"kb","use":0},{"n":"T-bar / landmine row","cat":"pl","rx":"3×8-10","eq":"Barbell + landmine","mod":"bb","use":0},{"n":"T-spine extension over foam roller","cat":"mo","rx":"2×8-10","eq":"Foam roller","mod":"mob","use":0},{"n":"Tall-kneeling KB press","cat":"pu","rx":"3×6-8/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Tempo run","cat":"en","rx":"20 min comfortably hard","eq":"Outdoor","mod":"cardio","use":0},{"n":"Tempo squat 3-1-0","cat":"sq","rx":"4×5","eq":"Barbell","mod":"bb","use":0},{"n":"TGU to tall kneeling","cat":"co","rx":"3×3/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Thoracic CARs (seated)","cat":"mo","rx":"5/direction","eq":"Bodyweight","mod":"mob","use":0},{"n":"Thread the needle","cat":"mo","rx":"2×8/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Thruster, barbell","cat":"en","rx":"4×6-8","eq":"Barbell","mod":"bb","use":0},{"n":"Tibialis raise","cat":"mo","rx":"2×15-20","eq":"Wall","mod":"mob","use":0},{"n":"Toe walk","cat":"mo","rx":"2×15-20 m","eq":"Bodyweight","mod":"mob","use":0},{"n":"Toe yoga (big-toe lifts)","cat":"mo","rx":"2×10/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Toes-to-bar","cat":"co","rx":"3×5-10","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Towel row","cat":"pl","rx":"3×8-10","eq":"Towel + bar","mod":"cali","use":0},{"n":"Towel-grip KB row","cat":"pl","rx":"3×8/side","eq":"Kettlebell + towel","mod":"kb","use":0},{"n":"Tuck planche","cat":"pu","rx":"4×5-12 sec","eq":"Parallettes","mod":"cali","use":0},{"n":"Tuck-up","cat":"co","rx":"3×12-15","eq":"Bodyweight","mod":"cali","use":0},{"n":"Turkish get-up","cat":"co","rx":"3-5×1-2/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Typewriter pull-up","cat":"pl","rx":"3×4-6","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Typewriter push-up","cat":"pu","rx":"3×6-8","eq":"Bodyweight","mod":"cali","use":0},{"n":"Upper trapezius stretch","cat":"mo","rx":"30-45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"V-up","cat":"co","rx":"3×10-15","eq":"Bodyweight","mod":"cali","use":0},{"n":"Waiter carry","cat":"ca","rx":"3×20-30 m/side","eq":"Kettlebell","mod":"kb","use":0},{"n":"Walking lunge","cat":"sq","rx":"3×12-16 steps","eq":"Bodyweight","mod":"cali","use":0},{"n":"Walking lunge, farmer hold","cat":"sq","rx":"3×10-12 steps","eq":"2 kettlebells","mod":"kb","use":0},{"n":"Wall handstand push-up","cat":"pu","rx":"3×3-8","eq":"Wall","mod":"cali","use":0},{"n":"Wall sit","cat":"sq","rx":"3×30-60 sec","eq":"Wall","mod":"cali","use":0},{"n":"Wall slide","cat":"mo","rx":"2×8-10","eq":"Wall","mod":"mob","use":0},{"n":"Wall slides or shoulder circles","eq":"Bodyweight","rx":"8-10 controlled reps","cat":"warm","use":0,"mod":"mob"},{"n":"Wall thoracic rotation","cat":"mo","rx":"2×8/side","eq":"Wall","mod":"mob","use":0},{"n":"Wall walk","cat":"pu","rx":"3×3-5","eq":"Wall","mod":"cali","use":0},{"n":"Wide-grip bench press","cat":"pu","rx":"3×8","eq":"Barbell + bench","mod":"bb","use":0},{"n":"Wide-grip pull-up","cat":"pl","rx":"3×3-6","eq":"Pull-up bar","mod":"cali","use":0},{"n":"Windshield wiper","cat":"co","rx":"3×6-8 alt","eq":"Pull-up bar","mod":"cali","use":0},{"n":"World's greatest stretch","cat":"mo","rx":"2×5/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Wrist CARs","cat":"mo","rx":"5/direction/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Wrist circles loaded on knees","cat":"mo","rx":"2×8/direction","eq":"Bodyweight","mod":"mob","use":0},{"n":"Wrist extensor stretch","cat":"mo","rx":"30-45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Wrist flexor stretch","cat":"mo","rx":"30-45 sec/side","eq":"Bodyweight","mod":"mob","use":0},{"n":"Wrist push-up rock","cat":"mo","rx":"2×8-10","eq":"Bodyweight","mod":"mob","use":0},{"n":"Yates row (underhand)","cat":"pl","rx":"3×8-10","eq":"Barbell","mod":"bb","use":0},{"n":"Z-press, barbell","cat":"pu","rx":"3×5-8","eq":"Barbell","mod":"bb","use":0},{"n":"Zercher carry","cat":"ca","rx":"3×20-30 m","eq":"Barbell","mod":"bb","use":0},{"n":"Zercher squat","cat":"sq","rx":"3×5-8","eq":"Barbell","mod":"bb","use":0},{"n":"Zone 2 run","cat":"en","rx":"30-50 min talk-test","eq":"Outdoor","mod":"cardio","use":0},{"n":"Zone 2 walk","eq":"Treadmill or outdoor","rx":"40 min at talk-test pace, HR guide 105-120 bpm","cat":"en","use":0,"mod":"cardio"}],"cats":[["warm","Warm-up & Activation","Raise temperature, mobilize joints and groove movement patterns before loading."],["sq","Squat & Lunge","Knee-dominant lower body: squats, lunges, step patterns."],["hi","Hinge & Posterior Chain","Hip-dominant strength and power: deadlifts, swings, bridges."],["pu","Push (Upper Body)","Horizontal and vertical pressing: push-ups, presses."],["pl","Pull (Upper Body)","Rows, hangs and pull-ups — balances all pressing work."],["co","Core & Trunk","Anti-extension / anti-rotation stiffness: planks, hollow, dead bugs."],["ca","Carries & Grip","Loaded carries: grip, posture and full-body bracing."],["en","Engine / Conditioning","Monostructural and mixed conditioning: Zone 2 base, rope, bike, burpees."],["mo","Cool-down & Mobility","Down-regulation, stretching and tissue care after sessions."]],"mods":[["all","All"],["cali","Calisthenics"],["kb","Kettlebell"],["bb","Barbell"],["db","Dumbbell"],["mob","Mobility"],["cardio","Conditioning"]],"blocks":["Calisthenics Work-up","Core / Stability","Core Integration","Fasting Recovery","Integrated WOD","Kettlebell WOD","Kettlebell Work-up","Load / Skill Ramp","Main Work","Mobility","Mobility Downshift","Movement Prep","Nutrition","Refeed Recovery","Safety","Skill"]};
+const EMBEDDED_KEY=''; // Optional: paste an API key here ONLY if your repo/hosting is private. On a public repo anyone can read it.
+/* ================= helpers ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function nice(ds){const d=new Date(ds+'T00:00:00');return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+d.getDate()+' '+MONTHS[d.getMonth()]}
+const START=new Date(DATA.start+'T00:00:00');
+const N=DATA.days.length;
+const BLOCKS=DATA.blocks;
+const ACT_TYPES=[['Cycling','🚴'],['Swimming','🏊'],['Running','🏃'],['Walking / Hike','🚶'],['Rowing','🚣'],['Strength','🏋️'],['Other','⭐']];
+const METS={'Cycling':[5,8,10],'Swimming':[6,8,10],'Running':[7,9.8,11.5],'Walking / Hike':[3.3,4.3,5.3],'Rowing':[4.8,7,8.5],'Strength':[3.5,5,6],'Other':[4,6,8]};
+const END=new Set(['Cycling','Swimming','Running','Walking / Hike','Rowing']);
+const INTS=['easy','moderate','hard'];
+const actIcon=t=>{const a=ACT_TYPES.find(x=>x[0]===t);return a?a[1]:'⭐'};
+function todayStr(){return fmt(new Date())}
+function idx(ds){return Math.round((new Date(ds+'T00:00:00')-START)/864e5)}
+function dateOf(i){const d=new Date(START);d.setDate(d.getDate()+i);return fmt(d)}
+function dayInfo(ds){const i=idx(ds);if(!(i>=0&&i<N))return null;const d=DATA.days[i];return Object.assign({i,T:DATA.T[d.t],M2:DATA.M2[d.m]},d)}
+const isFastDay=di=>!!di&&(di.kcal===0||/36h|48h/.test(di.fs||''));
+const FBYN={};DATA.foods.forEach((f,i)=>FBYN[f.n]=i);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const num=v=>{const n=parseFloat(v);return isFinite(n)?Math.max(0,Math.round(n)):0};
+const uid=()=>'c'+Date.now().toString(36)+Math.floor(Math.random()*99);
+
+/* ================= storage (IndexedDB) ================= */
+const S={persist:true,mem:new Map()};
+const DB=(()=>{let p;
+  function open(){if(!p)p=new Promise((res,rej)=>{const r=indexedDB.open('hift84',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error)});return p}
+  return{
+    get:k=>open().then(d=>new Promise((res,rej)=>{const t=d.transaction('kv').objectStore('kv').get(k);
+      t.onsuccess=()=>res(t.result===undefined?null:t.result); t.onerror=()=>rej(t.error)})),
+    set:(k,v)=>open().then(d=>new Promise((res,rej)=>{const t=d.transaction('kv','readwrite').objectStore('kv').put(v,k);
+      t.onsuccess=()=>res(); t.onerror=()=>rej(t.error)}))
+  };
+})();
+async function stGet(k){try{return await DB.get(k)}catch(e){S.persist=false;return S.mem.has(k)?S.mem.get(k):null}}
+async function stSet(k,v){try{await DB.set(k,v)}catch(e){S.persist=false;S.mem.set(k,v)}}
+const emptyLog=()=>({meals:[],water:0,note:'',planMeals:null,workout:null,acts:[],fuelSt:{}});
+async function getLog(ds){const l=(await stGet('log:'+ds))||emptyLog();
+  if(!('planMeals' in l))l.planMeals=null;if(!('workout' in l))l.workout=null;
+  if(!Array.isArray(l.acts))l.acts=[];if(!l.fuelSt)l.fuelSt={};return l}
+async function saveLog(ds,l){await stSet('log:'+ds,l)}
+
+/* ---- extra sessions: energy model & per-day targets ---- */
+function actKcal(a){const m=METS[a.type]||METS.Other;const met=m[INTS.indexOf(a.intensity)]??m[1];
+  return Math.round(met*(settings.weight||87)*a.min/60)}
+function actAdj(l){let k=0,c=0,w=0,maxEnd=0;
+  for(const a of (l.acts||[])){const kc=actKcal(a);k+=kc;
+    if(END.has(a.type)){c+=Math.round(kc*0.6/4);w+=a.min/60*0.5;maxEnd=Math.max(maxEnd,a.min)}}
+  return{k,c,w:Math.round(w*4)/4,maxEnd}}
+function dayTargets(di,l){const a=actAdj(l);
+  const base=di||{kcal:2400,prot:150,wat:2.5,su:0};
+  const fat=base.kcal?Math.round(base.kcal*0.28/9):0;
+  const carbs=base.kcal?Math.round(Math.max(base.kcal-base.prot*4-fat*9,0)/4):0;
+  const fast=base.su||base.kcal===0;
+  return {kcal:base.kcal+(fast?0:a.k),prot:base.prot,carbs:carbs+(fast?0:a.c),fat,
+          water:Math.round((base.wat+a.w)*4)/4,adj:fast?{k:0,c:0,w:a.w,maxEnd:0}:a,fast}}
+function fuelItems(di,l){
+  const a=actAdj(l); if(!di||di.su||di.kcal===0||a.c<25) return [];
+  const names=(l.acts||[]).filter(x=>END.has(x.type)).map(x=>x.type).join(' + ')||'session';
+  const items=[]; const C=a.c;
+  const mk=(id,label,food,cg,pg)=>items.push({id,type:label,food,kcal:cg*4+pg*4,prot:pg,carbs:cg});
+  if(a.maxEnd>=75){
+    const pre=Math.round(C*0.4), dur=Math.round(C*0.25);
+    mk('f_pre','Fuel · pre','Oats + banana or bread & honey, before '+names,pre,0);
+    mk('f_dur','Fuel · during','Isotonic drink / gel / banana (aim 30–60 g carbs per hour)',dur,0);
+    mk('f_post','Fuel · post','Rice, potatoes or pasta portion + protein — recovery',C-pre-dur,20);
+  }else{
+    const pre=Math.round(C*0.45);
+    mk('f_pre','Fuel · pre','Banana or bread & honey, before '+names,pre,0);
+    mk('f_post','Fuel · post','Rice / potato portion + protein, after '+names,C-pre,20);
+  }
+  return items;
+}
+function resetFuel(l){l.fuelSt={};l.meals=l.meals.filter(m=>!String(m.id).startsWith('L_f_'))}
+
+/* materialize editable copies of the plan on first use */
+function resolveFood(fi,q){const f=DATA.foods[fi];return {name:f.n,qty:q,por:f.por,
+  kcal:Math.round(f.kcal*q),p:Math.round(f.p*q*10)/10,c:Math.round(f.c*q*10)/10,f:Math.round(f.f*q*10)/10}}
+function matMeals(di,l){
+  if(!di)return;
+  if(l.planMeals){
+    if(l.planMeals.length&&!l.planMeals[0].items){ // migrate older flat rows
+      l.planMeals=l.planMeals.map(p=>({id:p.id,type:p.type,note:p.note||'',status:p.status,
+        items:[Object.assign({id:'i0'},{name:p.food,qty:1,por:'',kcal:p.kcal||0,p:p.prot||0,c:0,f:0})]}));
+    }
+    return;
+  }
+  l.planMeals=di.M2.filter(m=>m.type!=='Hydration').map((m,i)=>({id:'m'+i,type:m.type,note:m.note||'',status:'planned',
+    items:m.items.map((it,j)=>Object.assign({id:'i'+j},resolveFood(it.fi,it.q)))}));
+}
+const mT=m=>{const t={kcal:0,p:0,c:0,f:0};for(const it of m.items){t.kcal+=it.kcal;t.p+=it.p;t.c+=it.c;t.f+=it.f}
+  t.kcal=Math.round(t.kcal);t.p=Math.round(t.p);t.c=Math.round(t.c);t.f=Math.round(t.f);return t};
+const mealName=m=>{const n=m.items.length;return n?m.items[0].name+(n>1?' + '+(n-1)+' more':''):m.type};
+function refreshEaten(l,meal){
+  const li=l.meals.findIndex(x=>x.id==='L_'+meal.id);
+  if(meal.status!=='eaten'){if(li>=0)l.meals.splice(li,1);return}
+  if(!meal.items.length){meal.status='planned';if(li>=0)l.meals.splice(li,1);return}
+  const t=mT(meal), e={id:'L_'+meal.id,t:meal.type,name:mealName(meal),kcal:t.kcal,p:t.p,c:t.c,f:t.f,src:'plan'};
+  if(li>=0)l.meals[li]=e;else l.meals.push(e);
+}
+async function withMeals(ds,fn){const di=dayInfo(ds)||dayInfo(DATA.start),l=await getLog(ds);matMeals(di,l);fn(l);await saveLog(ds,l);render()}
+function matWorkout(di,l){
+  if(l.workout||!di)return;
+  l.workout=di.T.ex.map((e,i)=>({id:'e'+i,block:e[0],name:e[1],rx:e[2],eq:e[3],done:!!(l.done&&l.done[i]),actual:'',rpe:0}));
+}
+
+/* ================= app state ================= */
+let view='today', trainDate=todayStr(), planWeek=1, settings=null, pendingPhoto=null, analyzing=false, aiRes=null, apiKey='';
+let editMeals=false, editWo=false, openExId=null, libQ='', coachBusy=false, lastCoach=null;
+let expandMeal=null, fq='', fcat='all', pickSel=-1, pickQty=1, pickCtx=null, libMod='all', swapBusy=false;
+const defaults={weight:87};
+
+async function boot(){
+  settings=Object.assign({},defaults,(await stGet('settings'))||{});
+  apiKey=(await stGet('apikey'))||EMBEDDED_KEY||'';
+  const hm=location.hash.match(/key=([^&]+)/);
+  if(hm){apiKey=decodeURIComponent(hm[1]);await stSet('apikey',apiKey);
+    history.replaceState(null,'',location.pathname+location.search);toast('API key saved on this device ✓','ok')}
+  lastCoach=await stGet('coach:latest');
+  const t=dayInfo(todayStr()); if(t) trainDate=todayStr(); else if(idx(todayStr())<0) trainDate=DATA.start; else trainDate=dateOf(N-1);
+  go('today');
+  if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+/* ================= navigation ================= */
+function go(v){view=v;editMeals=false;editWo=false;openExId=null;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render()}
+function render(){({today:rToday,log:rLog,train:rTrain,plan:rPlan,lib:rLib})[view]()}
+
+function totals(l){const t={kcal:0,p:0,c:0,f:0};for(const m of l.meals){t.kcal+=m.kcal||0;t.p+=m.p||0;t.c+=m.c||0;t.f+=m.f||0}return t}
+function statusFlags(t,tg){
+  return {
+    overK:t.kcal>tg.kcal, nearK:t.kcal>tg.kcal*0.9&&t.kcal<=tg.kcal,
+    overC:t.c>tg.carbs, overF:t.f>tg.fat, protOk:t.p>=tg.prot
+  };
+}
+
+/* ================= Claude API ================= */
+async function callClaude(content,maxTokens){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    headers:{'content-type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,messages:[{role:'user',content}]})});
+  const data=await res.json();
+  if(data.error) throw new Error(data.error.message||data.error.type||'API error');
+  return (data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+}
+function parseJSONish(txt){
+  txt=txt.replace(/```json|```/g,'').trim();
+  return JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));
+}
+const keyErr=e=>/key|auth|401/i.test(e&&e.message||'');
+
+/* ================= TODAY ================= */
+async function rToday(){
+  const ds=todayStr(), di=dayInfo(ds), i=idx(ds), l=await getLog(ds);
+  matMeals(di||dayInfo(DATA.start),l);
+  const tg=dayTargets(di,l), t=totals(l), fl=statusFlags(t,tg);
+  let head='';
+  if(i<0){
+    head=`<div class="hero"><div class="row"><div class="grow"><div class="date">${nice(ds)}</div>
+      <div class="big">Starts in ${-i} day${-i>1?'s':''}</div></div>
+      <button class="gear" onclick="openSettings()" aria-label="Settings">⚙︎</button></div>
+      <div class="small">Day 1 is ${nice(DATA.start)} — preview below. You can already log food today.</div>
+      <div class="ticks"><i style="width:0"></i></div></div>`;
+  }else if(!di){
+    head=`<div class="hero"><div class="row"><div class="grow"><div class="date">${nice(ds)}</div><div class="big">Plan complete 🎉</div></div>
+      <button class="gear" onclick="openSettings()" aria-label="Settings">⚙︎</button></div>
+      <div class="ticks"><i style="width:100%"></i></div><div class="small">84 of 84 days</div></div>`;
+  }else{
+    head=`<div class="hero"><div class="row"><div class="grow">
+        <div class="date">${nice(ds)} · ${esc(di.dow)}</div>
+        <div class="big">Day ${String(di.i+1).padStart(2,'0')}<span> / ${N}</span></div></div>
+        <button class="gear" onclick="openSettings()" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#66707A" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.5h4l.4-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></button></div>
+      <div style="margin-top:6px"><span class="pill">Week ${di.week} · ${esc(di.phase)}</span> <span class="pill ${isFastDay(di)?'warn':''}">${isFastDay(di)?'⏳ ':''}${esc(di.ty)}</span></div>
+      <div class="ticks"><i style="width:${((di.i+1)/N*100).toFixed(1)}%"></i></div></div>`;
+  }
+
+  let alerts='';
+  if(di&&isFastDay(di)){
+    alerts+=`<div class="alert warn" style="display:block">⏳ <b>${esc(di.fs)}</b> — training suspended.<br><span class="small">${esc(di.fw||'')}</span><br><span class="small">${esc(di.sf||'')}</span></div>`;
+  }
+  if(tg.kcal>0&&fl.overK) alerts+=`<div class="alert bad">⚠️ <span>Over today's calorie target by <b>${t.kcal-tg.kcal} kcal</b> (${t.kcal} / ${tg.kcal}).</span></div>`;
+  else if(tg.kcal>0&&fl.nearK) alerts+=`<div class="alert warn">⏳ <span><b>${tg.kcal-t.kcal} kcal</b> left today — almost at your target.</span></div>`;
+  if(tg.kcal>0&&fl.overC) alerts+=`<div class="alert warn">🍞 <span>Carbs over target: <b>${t.c} g</b> / ${tg.carbs} g.</span></div>`;
+  if(tg.kcal>0&&fl.overF) alerts+=`<div class="alert warn">🥑 <span>Fat over target: <b>${t.f} g</b> / ${tg.fat} g.</span></div>`;
+  if(tg.prot>0&&fl.protOk) alerts+=`<div class="alert ok">💪 <span>Protein target reached: <b>${t.p} g</b> / ${tg.prot} g.</span></div>`;
+  if(!S.persist) alerts+=`<div class="alert warn">☁️ <span>This browser is blocking storage — entries will last for this session only.</span></div>`;
+
+  const pk=v=>clamp(v*100,0,100).toFixed(0)+'%';
+  const macro=tg.kcal===0?`<div class="card">
+    <div class="tag">Fasting day</div>
+    <div style="font-weight:800;font-size:20px;margin-top:2px">No calorie target — hydration only</div>
+    <div class="small" style="margin-top:6px">Water, black coffee or tea, electrolytes if appropriate. Anything you log below still counts, so you can record how the fast really went.${t.kcal?` <b>Logged so far: ${t.kcal} kcal.</b>`:''}</div>
+  </div>`:`<div class="card">
+    <div class="row"><div class="grow"><div class="tag">Calories</div>
+      <div class="kcalNum">${t.kcal}<span class="small" style="font-size:16px;font-weight:600"> / ${tg.kcal} kcal</span></div></div>
+      <div style="text-align:right"><div class="tag">Left</div><div style="font-weight:800;font-size:20px;color:${fl.overK?'var(--bad)':'var(--ok)'}">${tg.kcal-t.kcal}</div></div></div>
+    <div class="bar ${fl.overK?'over':''}"><i style="width:${pk(t.kcal/tg.kcal)}"></i></div>
+    ${tg.adj.k?`<div class="small" style="margin-top:8px">🚴 Extra training today: <b>+${tg.adj.k} kcal</b>${tg.adj.c?` · <b>+${tg.adj.c} g carbs</b>`:''} added to targets (plan base ${di?di.kcal:2400} kcal).</div>`:''}
+    <div class="mgrid">
+      <div class="mini pP"><div class="tag">Protein</div><b>${t.p}g</b><span class="small"> /${tg.prot}</span><div class="bar"><i style="width:${pk(t.p/tg.prot)}"></i></div></div>
+      <div class="mini pC"><div class="tag">Carbs</div><b>${t.c}g</b><span class="small"> /${tg.carbs}</span><div class="bar ${fl.overC?'over':''}"><i style="width:${pk(t.c/tg.carbs)}"></i></div></div>
+      <div class="mini pF"><div class="tag">Fat</div><b>${t.f}g</b><span class="small"> /${tg.fat}</span><div class="bar ${fl.overF?'over':''}"><i style="width:${pk(t.f/tg.fat)}"></i></div></div>
+    </div></div>`;
+
+  const wGoal=tg.water;
+  const water=`<div class="card"><div class="row">
+      <div class="grow"><div class="tag">Water</div><b style="font-size:18px">${(l.water||0).toFixed(2)} / ${wGoal} L</b></div>
+      <button class="icoBtn add" onclick="addWater('${ds}',0.25)">＋</button>
+      <button class="icoBtn del" onclick="addWater('${ds}',-0.25)">－</button></div>
+    <div class="bar" style="margin-top:8px"><i style="width:${pk((l.water||0)/wGoal)};background:#2FA8D5"></i></div></div>`;
+
+  /* coach card */
+  const coach=`<div class="card coachCard">
+      <div class="tag">AI coach</div>
+      ${lastCoach?`<h3 style="font-size:16px;margin-top:4px">${esc(lastCoach.j.headline||'Review ready')}</h3>
+        <div class="small" style="margin-top:2px">Last review ${nice(lastCoach.d)} · <button style="color:#fff;font-weight:800;text-decoration:underline" onclick="showCoach()">open</button></div>`
+       :`<div class="small" style="margin-top:4px">After a few days of logging, get personalised adjustments for your next sessions.</div>`}
+      <button class="btn" style="background:#fff;color:var(--acc);margin-top:12px" onclick="runCoach()" ${coachBusy?'disabled':''}>${coachBusy?'Analyzing your week…':'🧠 Review my week'}</button>
+    </div>`;
+
+  const ref=di||dayInfo(DATA.start);
+  let train='';
+  if(ref){
+    const wo=l.workout, doneN=wo?wo.filter(e=>e.done).length:0;
+    const extras=(l.acts||[]).map(a=>`<div class="item" style="padding:8px 0">
+        <div class="grow"><div class="nm" style="font-size:14px">${actIcon(a.type)} ${esc(a.type)} · ${a.min} min ${a.done?'<span class="pill ok">done</span>':''}</div>
+        <div class="macros">${esc(a.intensity)} · ${esc(a.tod||'')} · ~${actKcal(a)} kcal</div></div></div>`).join('');
+    train=`<div class="card"><div class="tag">${di?"Today's training":"Day 1 training preview"}</div>
+      <h3 style="margin:4px 0 2px;font-size:17px">${esc(ref.sm)}</h3>
+      <div class="small">${ref.min} min · ${esc(ref.ty)}${ref.su?' · ⏳ suspended':''}${wo?` · ${doneN}/${wo.length} done`:''}</div>
+      ${extras?`<div style="margin-top:6px">${extras}</div>`:''}
+      <div class="g2" style="margin-top:12px">
+        <button class="btn sec" onclick="trainDate='${di?ds:DATA.start}';go('train')">Open training →</button>
+        <button class="btn ghost" onclick="trainDate='${di?ds:DATA.start}';openActSheet('${di?ds:DATA.start}')">＋ Extra session</button>
+      </div></div>`;
+  }
+
+  /* planned meals (editable) */
+  const hyd=ref?ref.M2.find(m=>m.type==='Hydration'):null;
+  let plannedRows='';
+  (l.planMeals||[]).forEach(p=>{
+    const cls=p.status==='eaten'?'eaten':p.status==='skipped'?'skipped':'';
+    const t=mT(p), open=expandMeal===p.id;
+    const itemsEd=open?`<div class="detail">
+        ${p.items.map(it=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--line)">
+          <div class="grow"><div style="font-weight:600;font-size:14px">${esc(it.name)} <span class="small">× ${it.qty} ${esc(it.por)}</span></div>
+            <div class="macros">${it.kcal} kcal · P ${it.p} · C ${it.c} · F ${it.f}</div></div>
+          <button class="icoBtn" style="background:var(--accSoft);color:var(--acc);font-size:14px" title="AI swap" onclick="aiSwap('${ds}','${p.id}','${it.id}')">✨</button>
+          <button class="icoBtn trash" onclick="rmItem('${ds}','${p.id}','${it.id}')">🗑</button></div>`).join('')
+          ||'<div class="small" style="padding:6px 0">Empty — add items below.</div>'}
+        <button class="btn sec" style="margin-top:10px;padding:10px" onclick="openFoodPicker('${ds}','${p.id}')">＋ Add item from food list</button>
+      </div>`:'';
+    plannedRows+=`<div class="item ${cls}">
+      <button class="stBtn ${p.status==='eaten'?'on':''}" title="Eaten" onclick="setPM('${ds}','${p.id}','eaten')">✓</button>
+      <button class="stBtn off ${p.status==='skipped'?'on2':''}" title="Skipped" onclick="setPM('${ds}','${p.id}','skipped')">✕</button>
+      <div class="grow">
+        <button style="display:block;width:100%" onclick="expandMeal=${open?'null':`'${p.id}'`};render()">
+          <div class="tag">${esc(p.type)}${p.status==='skipped'?' · skipped':''} · ${p.items.length} item${p.items.length!==1?'s':''} ${open?'▴':'▾'}</div>
+          <div class="nm">${esc(mealName(p))}</div>
+          <div class="macros">${t.kcal} kcal · P ${t.p} · C ${t.c} · F ${t.f}</div>
+          ${p.note&&!open?`<div class="small">${esc(p.note)}</div>`:''}
+        </button>
+        ${itemsEd}
+      </div>
+      ${editMeals?`<button class="icoBtn trash" onclick="rmPM('${ds}','${p.id}')">🗑</button>`:''}</div>`;
+  });
+  let pT={kcal:0,p:0,c:0,f:0};
+  (l.planMeals||[]).forEach(p=>{if(p.status!=='skipped'){const t=mT(p);pT.kcal+=t.kcal;pT.p+=t.p;pT.c+=t.c;pT.f+=t.f}});
+  const addForm=editMeals?`<div class="detail">
+      <div class="tag" style="margin-bottom:6px">Add a meal (then fill it from the food list)</div>
+      <div class="g3">
+        <input type="text" id="pmName" placeholder="First item (optional)">
+        <input type="number" id="pmK" inputmode="numeric" placeholder="kcal">
+        <input type="number" id="pmP" inputmode="numeric" placeholder="prot g">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="pmType" style="flex:1">${['Pre-training','Breakfast','Lunch','Snack','Dinner','Other'].map(x=>`<option>${x}</option>`).join('')}</select>
+        <button class="pill" style="padding:9px 14px" onclick="addPM('${ds}')">Add</button>
+      </div></div>`:'';
+  let fuelRows='';
+  const fis=fuelItems(di,l);
+  fis.forEach(fi=>{
+    const st=l.fuelSt[fi.id]||'planned';
+    const cls=st==='eaten'?'eaten':st==='skipped'?'skipped':'';
+    fuelRows+=`<div class="item ${cls}">
+      <button class="stBtn ${st==='eaten'?'on':''}" title="Eaten" onclick="setFuel('${ds}','${fi.id}','eaten')">✓</button>
+      <button class="stBtn off ${st==='skipped'?'on2':''}" title="Skipped" onclick="setFuel('${ds}','${fi.id}','skipped')">✕</button>
+      <div class="grow"><div class="tag" style="color:var(--acc)">${esc(fi.type)}</div>
+        <div class="nm">${esc(fi.food)}</div>
+        <div class="macros">${fi.kcal} kcal · ${fi.carbs} g carbs${fi.prot?' · '+fi.prot+' g protein':''}</div></div></div>`;
+  });
+  const fuelSec=fuelRows?`<div class="blockH" style="margin-top:12px"><span class="tag" style="color:var(--acc)">🚴 Fuel for extra training</span></div>
+      <div class="small" style="margin:0 0 2px">Sized to your scheduled sessions — remove the session in Train to remove these.</div>${fuelRows}`:'';
+  const planned=ref?`<div class="card"><div class="row" style="margin-bottom:4px">
+      <div class="tag grow">Planned meals${di?'':' (Day 1)'}</div>
+      <button class="pill ${editMeals?'':'ghostp'}" onclick="editMeals=!editMeals;render()">${editMeals?'Done':'✎ Edit'}</button></div>
+      ${plannedRows||'<div class="small" style="padding:6px 0">No planned items left — add some with Edit.</div>'}
+      ${addForm}
+      ${fuelSec}
+      <div class="row" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">
+        <div class="tag grow">Plan total (excl. skipped)</div>
+        <div class="macros" style="font-weight:700;color:var(--ink)">${Math.round(pT.kcal)} kcal · P ${Math.round(pT.p)} · C ${Math.round(pT.c)} · F ${Math.round(pT.f)}</div></div>
+      <div class="small">Day target: ${tg.kcal} kcal · P ${tg.prot} · C ${tg.carbs} · F ${tg.fat} — totals recalculate as you edit items.</div>
+      ${hyd?`<div class="small" style="padding:10px 0 0">💧 ${esc(hyd.txt)}</div>`:''}
+      <div class="small" style="margin-top:8px">✓ marks it eaten and adds it to your totals · ✕ marks it skipped. Photograph anything else in <b>Log meal</b>.</div></div>`:'';
+
+  let loggedRows=l.meals.map(m=>`<div class="item"><div class="grow">
+      <div class="tag">${esc(m.t)}${m.src==='ai'?' · 📷 AI estimate':m.src==='plan'?' · plan ✓':m.src==='fuel'?' · 🚴 fuel':''}</div>
+      <div class="nm">${esc(m.name)}</div>
+      <div class="macros">${m.kcal} kcal · P ${m.p}g · C ${m.c}g · F ${m.f}g</div></div>
+      <button class="icoBtn del" onclick="delMeal('${ds}','${m.id}')">✕</button></div>`).join('');
+  const logged=`<div class="card"><div class="row" style="margin-bottom:4px"><div class="tag grow">Eaten today (${l.meals.length})</div>
+      <button class="pill" onclick="go('log')">＋ Add</button></div>
+      ${loggedRows||'<div class="small" style="padding:6px 0">Nothing logged yet. Photograph your first meal →</div>'}</div>`;
+
+  $('#main').innerHTML=head+alerts+macro+coach+water+train+planned+logged;
+  window.scrollTo(0,0);
+}
+async function addWater(ds,v){const l=await getLog(ds);l.water=Math.max(0,Math.round(((l.water||0)+v)*100)/100);await saveLog(ds,l);render()}
+
+/* planned-meal actions */
+async function setPM(ds,pid,st){
+  await withMeals(ds,l=>{
+    const p=l.planMeals.find(x=>x.id===pid); if(!p)return;
+    p.status = p.status===st ? 'planned' : st;
+    refreshEaten(l,p);
+  });
+  const l=await getLog(ds); const p=l.planMeals.find(x=>x.id===pid);
+  if(p&&p.status==='eaten') await afterSaveAlerts(ds);
+}
+async function rmPM(ds,pid){
+  await withMeals(ds,l=>{
+    l.planMeals=l.planMeals.filter(x=>x.id!==pid);
+    l.meals=l.meals.filter(m=>m.id!=='L_'+pid);
+  });
+}
+async function addPM(ds){
+  const name=($('#pmName').value||'').trim(), k=num($('#pmK').value), pr=num($('#pmP').value), ty=$('#pmType').value;
+  await withMeals(ds,l=>{
+    const items=name?[{id:uid(),name,qty:1,por:'',kcal:k,p:pr,c:0,f:0}]:[];
+    const m={id:uid(),type:ty,note:'',status:'planned',items};
+    l.planMeals.push(m); expandMeal=m.id;
+  });
+}
+async function rmItem(ds,mid,iid){
+  await withMeals(ds,l=>{
+    const p=l.planMeals.find(x=>x.id===mid); if(!p)return;
+    p.items=p.items.filter(i=>i.id!==iid);
+    refreshEaten(l,p);
+  });
+}
+async function addFoodToMeal(ds,mid,fi,qty){
+  await withMeals(ds,l=>{
+    const p=l.planMeals.find(x=>x.id===mid); if(!p)return;
+    p.items.push(Object.assign({id:uid()},resolveFood(fi,qty)));
+    refreshEaten(l,p);
+  });
+}
+async function setItem(ds,mid,iid,vals){
+  await withMeals(ds,l=>{
+    const p=l.planMeals.find(x=>x.id===mid); if(!p)return;
+    const ix=p.items.findIndex(i=>i.id===iid); if(ix<0)return;
+    p.items[ix]=Object.assign({id:iid},vals);
+    refreshEaten(l,p);
+  });
+}
+
+/* ---- food picker ---- */
+function openFoodPicker(ds,mid){pickCtx={ds,mid};pickSel=-1;pickQty=1;fq='';fcat='all';renderFoodPicker()}
+function renderFoodPicker(){
+  const {ds,mid}=pickCtx;
+  const chips=[['all','All'],...DATA.foodCats].map(([id,lb])=>
+    `<button class="${fcat===id?'on':''}" onclick="fcat='${id}';renderFoodPicker()">${lb}</button>`).join('');
+  const rows=DATA.foods.map((f,i)=>({f,i}))
+    .filter(x=>(fcat==='all'||x.f.cat===fcat)&&(!fq||x.f.n.toLowerCase().includes(fq)))
+    .map(x=>`<div class="item" style="padding:9px 0;${pickSel===x.i?'background:var(--accSoft);border-radius:10px;padding-left:8px':''}">
+      <button class="grow" onclick="pickSel=${x.i};pickQty=1;renderFoodPicker()">
+        <div class="nm" style="font-size:14px">${esc(x.f.n)}</div>
+        <div class="macros">${esc(x.f.por)} · ${x.f.kcal} kcal · P ${x.f.p} · C ${x.f.c} · F ${x.f.f}</div></button></div>`).join('');
+  const sel=pickSel>=0?DATA.foods[pickSel]:null;
+  const selBar=sel?`<div class="detail" style="margin:8px 0">
+      <div class="row"><div class="grow"><div class="nm" style="font-size:15px">${esc(sel.n)}</div>
+        <div class="macros">${Math.round(sel.kcal*pickQty)} kcal · P ${Math.round(sel.p*pickQty*10)/10} · C ${Math.round(sel.c*pickQty*10)/10} · F ${Math.round(sel.f*pickQty*10)/10} · qty ${pickQty} × ${esc(sel.por)}</div></div>
+        <button class="icoBtn del" onclick="pickQty=Math.max(0.5,Math.round((pickQty-0.5)*2)/2);renderFoodPicker()">－</button>
+        <button class="icoBtn add" onclick="pickQty=Math.round((pickQty+0.5)*2)/2;renderFoodPicker()">＋</button></div>
+      <button class="btn" style="margin-top:10px;padding:11px" onclick="addFoodToMeal('${ds}','${mid}',${pickSel},pickQty);toast('Added ✓','ok')">Add to meal</button>
+    </div>`:'<div class="small" style="margin:8px 0">Tap a food to select it, set quantity, then add. You can add several before closing.</div>';
+  $('#sheet').innerHTML=`<div class="row" style="margin-bottom:8px"><h2 class="grow" style="font-size:20px">Food list</h2>
+      <button class="pill" onclick="closeSheet()">Done</button></div>
+    <input type="text" placeholder="Search ${DATA.foods.length} foods…" value="${esc(fq)}" oninput="fq=this.value.toLowerCase();renderFoodPicker()">
+    <div class="wkpills" style="margin-top:8px">${chips}</div>
+    ${selBar}
+    ${rows||'<div class="small">No matches.</div>'}`;
+  $('#ovl').style.display='block'; $('#sheet').classList.add('open');
+}
+
+/* ---- AI replacement suggestions ---- */
+async function aiSwap(ds,mid,iid){
+  if(swapBusy)return;
+  if(!apiKey){toast('Add your Anthropic API key in ⚙ first','warn');openSettings();return}
+  const l=await getLog(ds); const p=(l.planMeals||[]).find(x=>x.id===mid); if(!p)return;
+  const it=p.items.find(i=>i.id===iid); if(!it)return;
+  swapBusy=true;
+  $('#sheet').innerHTML=`<div class="row"><h2 class="grow" style="font-size:20px">✨ Finding replacements…</h2></div>
+    <div style="margin:24px 0"><div class="spin"></div></div>
+    <div class="small" style="text-align:center">Best swaps for “${esc(it.name)}” in your ${esc(p.type.toLowerCase())}, given today's remaining macros.</div>`;
+  $('#ovl').style.display='block'; $('#sheet').classList.add('open');
+  try{
+    const di=dayInfo(ds)||dayInfo(DATA.start);
+    const tg=dayTargets(di,l), tot=totals(l);
+    const dbList=DATA.foods.map(f=>`${f.n}|${f.por}|${f.kcal}|${f.p}|${f.c}|${f.f}`).join('\n');
+    const txt=await callClaude([{type:'text',text:
+`You are a sports nutritionist. The user wants to replace one item in a planned meal.
+Item to replace: ${it.name} ×${it.qty} ${it.por} (${it.kcal} kcal, P${it.p} C${it.c} F${it.f})
+Meal: ${p.type}; other items: ${p.items.filter(x=>x.id!==iid).map(x=>x.name+' ×'+x.qty).join(', ')||'none'}
+Remaining today vs targets: kcal ${tg.kcal-tot.kcal}, protein ${tg.prot-tot.p} g, carbs ${tg.carbs-tot.c} g, fat ${tg.fat-tot.f} g.
+Food database (name|portion|kcal|P|C|F):
+${dbList}
+Pick the 3 best replacements FROM THE DATABASE ONLY (exact names), similar role & macros, fitting the meal and remaining targets. Vary the options. Reply ONLY minified JSON: {"suggestions":[{"name":"exact db name","qty":1,"why":"short reason"}]} with qty as portion multiplier (0.5 steps).`}],800);
+    const j=parseJSONish(txt);
+    const sugg=(j.suggestions||[]).map(s=>({fi:FBYN[s.name],qty:Math.max(0.5,Math.round((+s.qty||1)*2)/2),why:s.why||''}))
+      .filter(s=>s.fi!==undefined).slice(0,3);
+    swapBusy=false;
+    if(!sugg.length){closeSheet();toast('No usable suggestions — pick from the food list','warn');openFoodPicker(ds,mid);return}
+    $('#sheet').innerHTML=`<div class="row" style="margin-bottom:6px"><h2 class="grow" style="font-size:20px">✨ Replace “${esc(it.name)}”</h2>
+        <button class="pill" onclick="closeSheet()">Close</button></div>
+      ${sugg.map(s=>{const f=DATA.foods[s.fi],r=resolveFood(s.fi,s.qty);
+        return `<div class="item"><div class="grow">
+          <div class="nm">${esc(f.n)} <span class="small">× ${s.qty} ${esc(f.por)}</span></div>
+          <div class="macros">${r.kcal} kcal · P ${r.p} · C ${r.c} · F ${r.f}</div>
+          <div class="small">${esc(s.why)}</div></div>
+          <button class="icoBtn add" onclick="applySwap('${ds}','${mid}','${iid}',${s.fi},${s.qty})">→</button></div>`}).join('')}
+      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openFoodPicker('${ds}','${mid}')">Browse full food list instead</button>`;
+  }catch(err){
+    swapBusy=false; closeSheet();
+    toast(keyErr(err)?'API key rejected — check it in ⚙':'Suggestion failed — pick from the food list','bad');
+  }
+}
+async function applySwap(ds,mid,iid,fi,qty){
+  await setItem(ds,mid,iid,resolveFood(fi,qty));
+  closeSheet(); toast('Swapped ✓ — totals updated','ok');
+}
+async function setFuel(ds,fid,st){
+  const l=await getLog(ds);
+  const fi=fuelItems(dayInfo(ds)||dayInfo(DATA.start),l).find(x=>x.id===fid); if(!fi)return;
+  const was=l.fuelSt[fid]||'planned';
+  const now= was===st ? 'planned' : st;
+  l.fuelSt[fid]=now;
+  l.meals=l.meals.filter(m=>m.id!=='L_'+fid);
+  if(now==='eaten'){
+    l.meals.push({id:'L_'+fid,t:fi.type,name:fi.food.length>60?fi.food.slice(0,57)+'…':fi.food,kcal:fi.kcal,p:fi.prot,c:fi.carbs,f:0,src:'fuel'});
+  }
+  await saveLog(ds,l);
+  if(now==='eaten') await afterSaveAlerts(ds);
+  render();
+}
+async function delMeal(ds,id){
+  const l=await getLog(ds);
+  l.meals=l.meals.filter(m=>m.id!==id);
+  if(id.startsWith('L_f_')){l.fuelSt[id.slice(2)]='planned'}
+  else if(id.startsWith('L_')&&l.planMeals){const p=l.planMeals.find(x=>'L_'+x.id===id);if(p)p.status='planned'}
+  await saveLog(ds,l);render();
+}
+
+/* ================= LOG MEAL ================= */
+function rLog(){
+  const zone = pendingPhoto
+    ? `<img src="data:image/jpeg;base64,${pendingPhoto}" alt="Meal photo">`
+    : `<div style="font-size:42px">🍽️</div><div class="small" style="margin-top:6px">Photograph your plate — I'll estimate calories, protein, carbs and fat.</div>`;
+  const r=aiRes||{};
+  $('#main').innerHTML=`
+    <div class="hero"><div class="date">${nice(todayStr())}</div><div class="big" style="font-size:30px">Log a meal</div></div>
+    <div class="photoZone">${zone}
+      ${analyzing?'<div style="margin-top:12px"><div class="spin"></div><div class="small" style="margin-top:8px">Analyzing your meal…</div></div>':''}
+    </div>
+    <div class="g2" style="margin:12px 0">
+      <button class="btn" onclick="camIn.click()" ${analyzing?'disabled':''}>📷 Take photo</button>
+      <button class="btn ghost" onclick="libIn.click()" ${analyzing?'disabled':''}>🖼️ From library</button>
+    </div>
+    ${pendingPhoto&&!analyzing&&!aiRes?`<button class="btn sec" style="margin-bottom:12px" onclick="analyze()">✨ Analyze with AI</button>`:''}
+    ${!apiKey?`<div class="alert warn">🔑 <span>To enable photo analysis, add your Anthropic API key in <button style="font-weight:800;text-decoration:underline" onclick="openSettings()">settings</button>. Manual entry works without it.</span></div>`:''}
+    <div class="card">
+      <div class="tag">Meal details ${r.confidence?`· <span class="pill ${r.confidence==='high'?'ok':r.confidence==='low'?'warn':''}">${esc(r.confidence)} confidence</span>`:''}</div>
+      ${r.note?`<div class="small" style="margin-top:6px">🤖 ${esc(r.note)}${r.portion?' — '+esc(r.portion):''}</div>`:''}
+      <label class="f">Name</label><input type="text" id="fName" placeholder="e.g. Chicken, rice & salad" value="${esc(r.name||'')}">
+      <label class="f">Meal</label>
+      <select id="fType">${['Pre-training','Breakfast','Lunch','Snack','Dinner','Other'].map(x=>`<option ${guessMeal()===x?'selected':''}>${x}</option>`).join('')}</select>
+      <div class="g2">
+        <div><label class="f">Calories (kcal)</label><input type="number" id="fK" inputmode="numeric" value="${r.kcal??''}" placeholder="0"></div>
+        <div><label class="f">Protein (g)</label><input type="number" id="fP" inputmode="numeric" value="${r.protein_g??''}" placeholder="0"></div>
+        <div><label class="f">Carbs (g)</label><input type="number" id="fC" inputmode="numeric" value="${r.carbs_g??''}" placeholder="0"></div>
+        <div><label class="f">Fat (g)</label><input type="number" id="fF" inputmode="numeric" value="${r.fat_g??''}" placeholder="0"></div>
+      </div>
+      <button class="btn" style="margin-top:16px" onclick="saveMeal()">Save meal</button>
+      ${aiRes?'<div class="small" style="margin-top:10px">AI values are estimates — adjust anything before saving.</div>':''}
+    </div>`;
+  window.scrollTo(0,0);
+}
+function guessMeal(){const h=new Date().getHours();return h<10?'Breakfast':h<14?'Lunch':h<17?'Snack':h<22?'Dinner':'Other'}
+camIn.onchange=e=>pickPhoto(e); libIn.onchange=e=>pickPhoto(e);
+function pickPhoto(e){
+  const f=e.target.files[0]; e.target.value=''; if(!f)return;
+  const img=new Image(), url=URL.createObjectURL(f);
+  img.onload=()=>{
+    const mx=1024, sc=Math.min(1,mx/Math.max(img.width,img.height));
+    const cv=document.createElement('canvas'); cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    pendingPhoto=cv.toDataURL('image/jpeg',0.8).split(',')[1];
+    URL.revokeObjectURL(url); aiRes=null; view='log'; render(); analyze();
+  };
+  img.onerror=()=>{toast('Could not read that image','bad')};
+  img.src=url;
+}
+async function analyze(){
+  if(!pendingPhoto||analyzing)return;
+  if(!apiKey){toast('Add your Anthropic API key in ⚙ to enable AI analysis','warn');openSettings();return}
+  analyzing=true; render();
+  try{
+    const txt=await callClaude([
+      {type:'image',source:{type:'base64',media_type:'image/jpeg',data:pendingPhoto}},
+      {type:'text',text:'Estimate the nutrition of the meal in this photo for the entire visible portion. Reply with ONLY minified JSON, no markdown, no extra text, exactly this shape: {"name":"short dish name","portion":"portion estimate","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0,"confidence":"low|medium|high","note":"one short sentence on what you see / assumptions"}. Integers for numbers. If it is not food, use name "Not food" and zeros.'}
+    ],1000);
+    const j=parseJSONish(txt);
+    aiRes={name:j.name||'',portion:j.portion||'',kcal:num(j.kcal),protein_g:num(j.protein_g),carbs_g:num(j.carbs_g),fat_g:num(j.fat_g),confidence:j.confidence||'medium',note:j.note||''};
+    toast('Estimated — review and save','info');
+  }catch(err){
+    aiRes=null;
+    toast(keyErr(err)?'API key rejected — check it in ⚙':'Analysis failed — enter values manually','bad');
+  }
+  analyzing=false; render();
+}
+async function saveMeal(){
+  const name=($('#fName').value||'Meal').trim(), kcal=num($('#fK').value), p=num($('#fP').value), c=num($('#fC').value), f=num($('#fF').value);
+  if(!kcal&&!p&&!c&&!f){toast('Add at least one value','warn');return}
+  const ds=todayStr(), l=await getLog(ds);
+  l.meals.push({id:uid(),t:$('#fType').value,name,kcal,p,c,f,src:aiRes?'ai':'manual'});
+  await saveLog(ds,l);
+  pendingPhoto=null; aiRes=null;
+  const alerted=await afterSaveAlerts(ds);
+  if(!alerted) toast('Saved ✓','ok');
+  go('today');
+}
+async function afterSaveAlerts(ds){
+  const l=await getLog(ds), di=dayInfo(ds), tg=dayTargets(di,l), t=totals(l), fl=statusFlags(t,tg);
+  if(fl.overK){toast('⚠️ Over daily calories by '+(t.kcal-tg.kcal)+' kcal','bad');return true}
+  if(fl.overC){toast('Carbs over target ('+t.c+'g / '+tg.carbs+'g)','warn');return true}
+  if(fl.overF){toast('Fat over target ('+t.f+'g / '+tg.fat+'g)','warn');return true}
+  if(fl.protOk){toast('💪 Protein target reached: '+t.p+' g','ok');return true}
+  if(fl.nearK){toast((tg.kcal-t.kcal)+' kcal left today','warn');return true}
+  return false;
+}
+
+/* ================= TRAIN ================= */
+const BLOCK_NOTE={'Work-up':'prep','Ramp':'ramp','Main':'wod','Integrated WOD':'wod','Finisher':'core','Core reset':'core','Cool-down':'cool'};
+function ytQuery(name){
+  let q=name.replace(/\(.*?\)/g,'').split(' or ')[0].split(',')[0].trim();
+  return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q+' exercise how to proper form');
+}
+async function rTrain(){
+  const ds=trainDate, di=dayInfo(ds), l=await getLog(ds), i=idx(ds);
+  const nav=`<div class="dnav">
+      <button class="nav" onclick="shiftTrain(-1)" ${i<=0?'disabled':''}>‹</button>
+      <div class="grow" style="text-align:center"><b>${nice(ds)}</b><div class="small">${di?'Day '+(di.i+1)+' · Week '+di.week+' · '+esc(di.phase):'Outside plan'}</div></div>
+      <button class="nav" onclick="shiftTrain(1)" ${i>=N-1?'disabled':''}>›</button></div>
+    ${ds!==todayStr()&&dayInfo(todayStr())?`<button class="pill" style="margin-bottom:10px" onclick="trainDate=todayStr();render()">Jump to today</button>`:''}`;
+  if(!di){$('#main').innerHTML=`<div class="hero"><div class="big" style="font-size:30px">Training</div></div>${nav}<div class="card small">No session on this date.</div>`;return}
+  matWorkout(di,l);
+  const T=di.T, wo=l.workout;
+  let blocks='';
+  const shown={};
+  for(const blk of BLOCKS){
+    const items=wo.filter(e=>e.block===blk);
+    if(!items.length)continue;
+    const nk=BLOCK_NOTE[blk], note=(nk&&!shown[nk])?T[nk]:null; if(nk)shown[nk]=1;
+    blocks+=`<div class="blockH"><span class="tag">${esc(blk)}</span></div>${note?`<p class="coach">${esc(note)}</p>`:''}`;
+    for(const e of items){
+      const open=openExId===e.id;
+      blocks+=`<div class="item ${e.done?'done':''}">
+        <button class="chk ${e.done?'on':''}" onclick="toggleDone('${ds}','${e.id}')">${e.done?'✓':''}</button>
+        <div class="grow">
+          <button style="display:block;width:100%" onclick="openExId=${open?'null':`'${e.id}'`};render()">
+            <div class="nm">${esc(e.name)}</div>
+            <div class="macros">${esc(e.rx)}${e.eq&&e.eq!=='Bodyweight'?' · '+esc(e.eq):''}</div>
+            ${(e.actual||e.rpe)?`<div class="actual">Did: ${esc(e.actual||'—')}${e.rpe?' · RPE '+e.rpe:''}</div>`:''}
+          </button>
+          ${open?`<div class="detail">
+            <div class="tag">What did you actually do?</div>
+            <input type="text" style="margin-top:6px" placeholder="e.g. 5 reps instead of 8, KB 16 kg" value="${esc(e.actual)}"
+              onchange="setActual('${ds}','${e.id}',this.value)">
+            <div class="tag" style="margin-top:10px">Difficulty (RPE 1 easy → 10 max)</div>
+            <div class="rpes">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="${e.rpe===n?'on':''}" onclick="setRpe('${ds}','${e.id}',${n})">${n}</button>`).join('')}</div>
+          </div>`:''}
+        </div>
+        ${editWo?`<button class="icoBtn trash" onclick="rmEx('${ds}','${e.id}')">🗑</button>`:''}
+        <a class="icoBtn yt" target="_blank" rel="noopener" href="${ytQuery(e.name)}" title="Watch how to do it">
+          <svg viewBox="0 0 24 24"><path d="M23 7.5s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.3-1C16.6 4 12 4 12 4s-4.6 0-7.8.2c-.4.1-1.4.1-2.3 1C1.2 5.9 1 7.5 1 7.5S.8 9.4.8 11.3v1.4c0 1.9.2 3.8.2 3.8s.2 1.6.9 2.3c.9.9 2 .9 2.5 1 1.8.2 7.6.2 7.6.2s4.6 0 7.8-.2c.4-.1 1.4-.1 2.3-1 .7-.7.9-2.3.9-2.3s.2-1.9.2-3.8v-1.4c0-1.9-.2-3.8-.2-3.8zM9.8 15.1V8.4l6.1 3.4-6.1 3.3z"/></svg></a>
+      </div>`;
+    }
+  }
+  const doneCount=wo.filter(e=>e.done).length;
+  $('#main').innerHTML=`<div class="hero"><div class="big" style="font-size:30px">Training</div></div>${nav}
+    ${di.su?`<div class="alert warn" style="display:block">⏳ <b>Training suspended — ${esc(di.fs)}.</b><br><span class="small">${esc(di.fw||'')} Gentle walking and easy mobility only; the bullets below are the fasting protocol.</span></div>`:''}
+    <div class="card">
+      <span class="pill">${di.min} min planned</span> <span class="pill ${di.su?'warn':''}">${esc(di.ty)}</span>
+      <h2 style="font-size:19px;margin-top:10px">${esc(di.sm)}</h2>
+      <div class="small" style="margin-top:4px"><b>Objective:</b> ${esc(di.ob)}</div>
+      <div class="small" style="margin-top:4px">⚠️ ${esc(di.sf)}</div>
+    </div>
+    <div class="card">
+      <div class="row"><div class="tag grow">Session · tap an exercise to report</div>
+        <span class="small">${doneCount}/${wo.length}</span>
+        <button class="pill ${editWo?'':'ghostp'}" onclick="editWo=!editWo;render()">${editWo?'Done':'✎ Edit'}</button></div>
+      ${blocks}
+      ${editWo?`<button class="btn sec" style="margin-top:12px" onclick="openPicker('${ds}')">＋ Add exercise</button>`:''}
+    </div>
+    <div class="card">
+      <div class="row"><div class="tag grow">Extra sessions${(l.acts||[]).length?'':' — cycling, pool, evening work'}</div>
+        <button class="pill" onclick="openActSheet('${ds}')">＋ Add</button></div>
+      ${(l.acts||[]).map(a=>`<div class="item ${a.done?'done':''}">
+        <button class="chk ${a.done?'on':''}" onclick="toggleAct('${ds}','${a.id}')">${a.done?'✓':''}</button>
+        <div class="grow"><div class="nm">${actIcon(a.type)} ${esc(a.type)}</div>
+          <div class="macros">${a.min} min · ${esc(a.intensity)} · ${esc(a.tod||'')} · ~${actKcal(a)} kcal${END.has(a.type)?' · +'+Math.round(actKcal(a)*0.6/4)+' g carbs to target':''}</div></div>
+        <button class="icoBtn trash" onclick="rmAct('${ds}','${a.id}')">🗑</button></div>`).join('')
+      ||'<div class="small" style="padding:6px 0">Schedule a ride or swim here — that day\'s calorie & carb targets and a fuel plan adjust automatically.</div>'}
+    </div>
+    <div class="alert warn">🛟 <span>${esc(T.safety)}</span></div>
+    <div class="card"><div class="tag">Score / load / notes</div>
+      <div class="small" style="margin:4px 0 8px">${esc(T.score)}</div>
+      <textarea id="woNote" placeholder="e.g. 7 rounds, KB 20 kg, RPE 7">${esc(l.note)}</textarea>
+      <button class="btn sec" style="margin-top:10px" onclick="saveNote('${ds}')">Save note</button></div>
+    <button class="btn" onclick="runCoach()" ${coachBusy?'disabled':''}>${coachBusy?'Analyzing your week…':'🧠 Coach: review my week'}</button>`;
+  window.scrollTo(0,0);
+}
+function shiftTrain(d){const i=clamp(idx(trainDate)+d,0,N-1);trainDate=dateOf(i);openExId=null;render()}
+async function withWo(ds,fn){const di=dayInfo(ds),l=await getLog(ds);matWorkout(di,l);fn(l);await saveLog(ds,l);render()}
+async function toggleDone(ds,eid){await withWo(ds,l=>{const e=l.workout.find(x=>x.id===eid);if(e)e.done=!e.done})}
+async function setActual(ds,eid,v){await withWo(ds,l=>{const e=l.workout.find(x=>x.id===eid);if(e)e.actual=v.trim()})}
+async function setRpe(ds,eid,n){await withWo(ds,l=>{const e=l.workout.find(x=>x.id===eid);if(e)e.rpe=e.rpe===n?0:n})}
+async function rmEx(ds,eid){await withWo(ds,l=>{l.workout=l.workout.filter(x=>x.id!==eid)})}
+async function saveNote(ds){const l=await getLog(ds);l.note=$('#woNote').value;await saveLog(ds,l);toast('Note saved ✓','ok')}
+
+/* extra sessions */
+function openActSheet(ds){
+  $('#sheet').innerHTML=`<div class="row" style="margin-bottom:6px"><h2 class="grow" style="font-size:20px">Extra session · ${nice(ds)}</h2>
+      <button class="pill" onclick="closeSheet()">Close</button></div>
+    <div class="small">Scheduling an endurance session raises that day's calorie & carb targets and adds a fuel plan to the meals.</div>
+    <label class="f">Activity</label>
+    <select id="acType">${ACT_TYPES.map(([t,i])=>`<option value="${t}">${i} ${t}</option>`).join('')}</select>
+    <div class="g2">
+      <div><label class="f">Duration (min)</label><input type="number" id="acMin" inputmode="numeric" value="60"></div>
+      <div><label class="f">Intensity</label><select id="acInt">${INTS.map(x=>`<option ${x==='moderate'?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <label class="f">When</label>
+    <select id="acTod">${['Morning','Afternoon','Evening'].map(x=>`<option ${x==='Evening'?'selected':''}>${x}</option>`).join('')}</select>
+    <button class="btn" style="margin-top:16px" onclick="addAct('${ds}')">Add session</button>`;
+  $('#ovl').style.display='block'; $('#sheet').classList.add('open');
+}
+async function addAct(ds){
+  const type=$('#acType').value, min=num($('#acMin').value), it=$('#acInt').value, tod=$('#acTod').value;
+  if(!min){toast('Set a duration','warn');return}
+  const l=await getLog(ds);
+  l.acts.push({id:uid(),type,min,intensity:it,tod,done:false});
+  resetFuel(l);
+  await saveLog(ds,l); closeSheet();
+  const a=actAdj(l);
+  toast(`Added · targets ${ds===todayStr()?'today':nice(ds)}: +${a.k} kcal${a.c?', +'+a.c+' g carbs':''}`,'ok');
+  render();
+}
+async function rmAct(ds,id){
+  const l=await getLog(ds);
+  l.acts=l.acts.filter(a=>a.id!==id);
+  resetFuel(l);
+  await saveLog(ds,l); render();
+}
+async function toggleAct(ds,id){
+  const l=await getLog(ds);
+  const a=l.acts.find(x=>x.id===id); if(a)a.done=!a.done;
+  await saveLog(ds,l); render();
+}
+
+/* exercise picker (add to a day) */
+function openPicker(ds){
+  const chips=DATA.mods.map(([id,lb])=>`<button class="${libMod===id?'on':''}" onclick="libMod='${id}';openPicker('${ds}')">${lb}</button>`).join('');
+  const cats=DATA.cats.map(([id,label])=>{
+    const items=DATA.lib.map((e,li)=>({e,li})).filter(x=>x.e.cat===id&&(libMod==='all'||x.e.mod===libMod)&&(!libQ||x.e.n.toLowerCase().includes(libQ)));
+    if(!items.length)return '';
+    return `<div class="cath"><h3 style="font-size:14px">${esc(label)} <span class="small">${items.length}</span></h3></div>`+
+      items.map(x=>`<div class="item">
+        <div class="grow"><div class="nm">${esc(x.e.n)}</div><div class="macros">${esc(x.e.rx)}${x.e.eq&&x.e.eq!=='Bodyweight'?' · '+esc(x.e.eq):''}</div></div>
+        <button class="icoBtn add" onclick="pickAdd('${ds}',${x.li})">＋</button></div>`).join('');
+  }).join('');
+  $('#sheet').innerHTML=`<div class="row" style="margin-bottom:8px"><h2 class="grow" style="font-size:20px">Add exercise</h2>
+      <button class="pill" onclick="closeSheet()">Close</button></div>
+    <div class="g2" style="margin-bottom:8px">
+      <select id="pkBlock">${BLOCKS.map(b=>`<option ${b==='Integrated WOD'?'selected':''}>${b}</option>`).join('')}</select>
+      <input type="text" placeholder="Search…" value="${esc(libQ)}" oninput="libQ=this.value.toLowerCase();openPicker('${ds}')">
+    </div>
+    <div class="wkpills">${chips}</div>
+    <div class="detail" style="margin-bottom:6px">
+      <div class="tag" style="margin-bottom:6px">Or a custom exercise</div>
+      <input type="text" id="cxName" placeholder="Name (e.g. Ring dip)">
+      <input type="text" id="cxRx" placeholder="Prescription (e.g. 3 × 8)" style="margin-top:8px">
+      <button class="pill" style="margin-top:8px;padding:9px 14px" onclick="addCustomEx('${ds}')">Add custom</button>
+    </div>
+    ${cats}`;
+  $('#ovl').style.display='block'; $('#sheet').classList.add('open');
+}
+async function pickAdd(ds,li){
+  const e=DATA.lib[li], blk=$('#pkBlock').value;
+  await withWo(ds,l=>{l.workout.push({id:uid(),block:blk,name:e.n,rx:e.rx,eq:e.eq,done:false,actual:'',rpe:0})});
+  toast('Added to '+blk+' — tap it to adjust','ok');
+}
+async function addCustomEx(ds){
+  const n=($('#cxName').value||'').trim(); if(!n){toast('Give it a name','warn');return}
+  const rx=($('#cxRx').value||'').trim()||'—', blk=$('#pkBlock').value;
+  await withWo(ds,l=>{l.workout.push({id:uid(),block:blk,name:n,rx,eq:'',done:false,actual:'',rpe:0})});
+  $('#cxName').value='';$('#cxRx').value='';
+  toast('Added to '+blk,'ok');
+}
+
+/* ================= LIBRARY ================= */
+function rLib(){
+  const chips=DATA.mods.map(([id,lb])=>`<button class="${libMod===id?'on':''}" onclick="libMod='${id}';render()">${lb}</button>`).join('');
+  const secs=DATA.cats.map(([id,label,blurb])=>{
+    const items=DATA.lib.filter(e=>e.cat===id&&(libMod==='all'||e.mod===libMod)&&(!libQ||e.n.toLowerCase().includes(libQ)));
+    if(!items.length)return '';
+    return `<div class="cath"><h3>${esc(label)} <span class="small" style="font-weight:600">${items.length}</span></h3><div class="small">${esc(blurb)}</div></div>
+      <div class="card">`+items.map(e=>`<div class="item">
+        <div class="grow"><div class="nm">${esc(e.n)}</div>
+          <div class="macros">${esc(e.rx)}${e.eq&&e.eq!=='Bodyweight'?' · '+esc(e.eq):''}${e.use?' · in plan '+e.use+'×':''}</div></div>
+        <a class="icoBtn yt" target="_blank" rel="noopener" href="${ytQuery(e.n)}" title="Watch how to do it">
+          <svg viewBox="0 0 24 24"><path d="M23 7.5s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.3-1C16.6 4 12 4 12 4s-4.6 0-7.8.2c-.4.1-1.4.1-2.3 1C1.2 5.9 1 7.5 1 7.5S.8 9.4.8 11.3v1.4c0 1.9.2 3.8.2 3.8s.2 1.6.9 2.3c.9.9 2 .9 2.5 1 1.8.2 7.6.2 7.6.2s4.6 0 7.8-.2c.4-.1 1.4-.1 2.3-1 .7-.7.9-2.3.9-2.3s.2-1.9.2-3.8v-1.4c0-1.9-.2-3.8-.2-3.8zM9.8 15.1V8.4l6.1 3.4-6.1 3.3z"/></svg></a>
+      </div>`).join('')+`</div>`;
+  }).join('');
+  $('#main').innerHTML=`<div class="hero"><div class="big" style="font-size:30px">Exercise library</div>
+      <div class="small">${DATA.lib.length} movements grouped by movement pattern — filter by modality, tap ▶ for a video. Add any of them to a day from Train → ✎ Edit.</div></div>
+    <input type="text" placeholder="Search ${DATA.lib.length} exercises…" value="${esc(libQ)}" oninput="libQ=this.value.toLowerCase();render()">
+    <div class="wkpills" style="margin-top:8px">${chips}</div>
+    ${secs||'<div class="card small">No matches.</div>'}`;
+}
+
+/* ================= PLAN ================= */
+async function rPlan(){
+  const ti=dayInfo(todayStr()); const cw=ti?ti.week:null;
+  let pills='';for(let w=1;w<=12;w++)pills+=`<button class="${w===planWeek?'on':''}" onclick="planWeek=${w};render()">W${w}${w===cw?' •':''}</button>`;
+  const wk=[];
+  DATA.days.forEach((d,i)=>{if(d.week===planWeek)wk.push(i)});
+  const logs={};
+  for(const i of wk){const ds=dateOf(i);logs[ds]=await getLog(ds)}
+  let rows='';
+  const TYICO={'Integrated Training':'🤸','Full Kettlebell Training':'🏋️','Zone 2 Walk':'🚶','Conditioning / Mobility':'🧘','Fasting / Training Suspended':'⏳','Refeed / Recovery':'🍽','Review / Measurement':'📏'};
+  for(const i of wk){
+    const d=DATA.days[i], ds=dateOf(i), today=ds===todayStr(), acts=logs[ds].acts||[];
+    const badge=acts.length?` · ${acts.map(a=>actIcon(a.type)).join('')} ${acts.reduce((s,a)=>s+a.min,0)}′`:'';
+    const fast=d.kcal===0;
+    rows+=`<button class="dayrow" onclick="trainDate='${ds}';go('train')">
+      <div class="dow"><span>${d.dow.slice(0,3)}</span><b style="${today?'color:var(--acc)':''}">${new Date(ds+'T00:00:00').getDate()}</b></div>
+      <div class="grow"><div class="nm">${TYICO[d.ty]||''} ${esc(d.ty)}${fast?' · '+esc(d.fs):''}</div>
+        <div class="macros">${d.min} min${badge} · 🍽 ${fast?'fasting — 0':d.kcal} kcal · ${d.prot} g protein · 💧 ${d.wat} L</div></div>
+      <div class="small">›</div></button>`;
+  }
+  const phase=DATA.days.find(d=>d.week===planWeek).phase;
+  $('#main').innerHTML=`<div class="hero"><div class="big" style="font-size:30px">12-week plan</div>
+      <div class="small">Started ${nice(DATA.start)} · phase: <b>${esc(phase)}</b> · tap a day to open or schedule extra sessions</div></div>
+    <div class="wkpills">${pills}</div>
+    <div class="card">${rows}</div>`;
+}
+
+/* ================= COACH ================= */
+async function collectWeek(){
+  const t0=Math.min(Math.max(idx(todayStr()),0),N-1);
+  const days=[];
+  for(let i=Math.max(0,t0-6);i<=t0;i++){
+    const ds=dateOf(i), di=dayInfo(ds), l=await getLog(ds);
+    if(!di)continue;
+    const wo=(l.workout||[]).map(e=>({name:e.name,block:e.block,planned:e.rx,done:e.done,actual:e.actual||undefined,rpe:e.rpe||undefined}));
+    const pm=(l.planMeals||[]);
+    const tg=dayTargets(di,l);
+    const dd={date:ds,dow:di.dow,week:di.week,phase:di.phase,day_type:di.ty,fasting:di.fs,training_suspended:!!di.su,focus:di.sm,planned_min:di.min,targets:{kcal:di.kcal,prot:di.prot,water:di.wat},
+      workout:wo.length?wo:undefined,
+      extra_sessions:(l.acts&&l.acts.length)?l.acts.map(a=>({type:a.type,min:a.min,intensity:a.intensity,when:a.tod,done:a.done,est_kcal:actKcal(a)})):undefined,
+      targets_today:{kcal:tg.kcal,carbs:tg.carbs},
+      meals:{eaten_from_plan:pm.filter(p=>p.status==='eaten').map(p=>p.type),
+             skipped_from_plan:pm.filter(p=>p.status==='skipped').map(p=>p.type+': '+(p.items&&p.items[0]?p.items[0].name:'')),
+             plan_edits:pm.filter(p=>p.items).map(p=>p.type+' '+p.items.length+' items').join(', ')||undefined,
+             extra_logged:l.meals.filter(m=>!String(m.id).startsWith('L_')).map(m=>({n:m.name,kcal:m.kcal,p:m.p})),
+             totals:totals(l), water_l:l.water||0},
+      note:l.note||undefined};
+    days.push(dd);
+  }
+  return days;
+}
+async function runCoach(){
+  if(coachBusy)return;
+  if(!apiKey){toast('Add your Anthropic API key in ⚙ first','warn');openSettings();return}
+  const days=await collectWeek();
+  const any=days.some(d=>(d.workout&&d.workout.some(e=>e.done||e.actual||e.rpe))||d.meals.totals.kcal>0);
+  if(!any){toast('Log at least one day of training or food first','warn');return}
+  coachBusy=true; render();
+  try{
+    const payload={targets:settings,week_data:days};
+    const txt=await callClaude([{type:'text',text:
+`You are an experienced HIFT/calisthenics strength coach and sports nutritionist reviewing a 51-year-old recreational athlete's week in a 12-week integrated program (Zone 2 base + kettlebell/barbell strength + calisthenics). He also does extra endurance sessions (cycling, swimming); on those days the app already raises kcal/carb targets to fuel them (targets_today shows the adjusted values, ~60% of extra energy as carbs). The plan now includes 36h fasts (weeks 3/6/9) and one 48h fast (week 12) with training suspended and a refeed/recovery day after — never advise training or eating inside a planned fasting window, judge those days by hydration and how the fast felt, and treat refeed days as deliberate recovery, not underperformance. Data (planned vs actually done, RPE 1-10, extra sessions, meals, macro totals vs adjusted targets):
+${JSON.stringify(payload)}
+Give practical, safe, encouraging recommendations for the NEXT sessions. Where RPE >= 9 or reps fell short, suggest concrete scaling (fewer reps, lighter load, easier variation); where RPE <= 6 and all done, suggest small progressions (+1-2 reps, +2-4 kg, harder variation). Consider interference: if a hard ride/swim precedes a strength day, advise on ordering or scaling. Flag protein shortfalls, under-fueling on endurance days, or calorie overshoots plainly. Reply with ONLY minified JSON, no markdown: {"headline":"one short sentence","wins":["…"],"flags":["…"],"training_adjustments":[{"target":"exercise or area","change":"specific adjustment","why":"short reason"}],"nutrition_advice":["…"],"next_week_focus":"2-3 sentences"} . Max 4 items per list.`}],1500);
+    const j=parseJSONish(txt);
+    lastCoach={d:todayStr(),j};
+    await stSet('coach:latest',lastCoach);
+    coachBusy=false; showCoach();
+  }catch(err){
+    coachBusy=false;
+    toast(keyErr(err)?'API key rejected — check it in ⚙':'Coach review failed — try again','bad');
+    render();
+  }
+}
+function showCoach(){
+  if(!lastCoach){toast('No review yet','warn');return}
+  const j=lastCoach.j;
+  const li=a=>(a||[]).map(x=>`<div class="item"><div class="grow"><div class="nm" style="font-weight:600">${esc(x)}</div></div></div>`).join('');
+  const adj=(j.training_adjustments||[]).map(a=>`<div class="item"><div class="grow">
+      <div class="nm">${esc(a.target)}</div>
+      <div class="macros" style="color:var(--acc);font-weight:700">${esc(a.change)}</div>
+      <div class="small">${esc(a.why)}</div></div></div>`).join('');
+  $('#sheet').innerHTML=`<div class="row" style="margin-bottom:6px"><h2 class="grow" style="font-size:20px">🧠 Coach review</h2>
+      <button class="pill" onclick="closeSheet()">Close</button></div>
+    <div class="small">${nice(lastCoach.d)} · based on your last 7 days</div>
+    <h3 style="font-size:17px;margin:10px 0 4px">${esc(j.headline||'')}</h3>
+    ${j.wins&&j.wins.length?`<div class="tag" style="margin-top:12px;color:var(--ok)">Wins</div>${li(j.wins)}`:''}
+    ${j.flags&&j.flags.length?`<div class="tag" style="margin-top:12px;color:var(--bad)">Watch out</div>${li(j.flags)}`:''}
+    ${adj?`<div class="tag" style="margin-top:12px;color:var(--acc)">Adjust next sessions</div>${adj}`:''}
+    ${j.nutrition_advice&&j.nutrition_advice.length?`<div class="tag" style="margin-top:12px">Nutrition</div>${li(j.nutrition_advice)}`:''}
+    ${j.next_week_focus?`<div class="tag" style="margin-top:12px">Next week</div><p style="margin:6px 0 0;font-size:14px">${esc(j.next_week_focus)}</p>`:''}
+    <div class="small" style="margin-top:14px">Apply changes yourself via Train → ✎ Edit (add/remove/swap exercises). General guidance, not medical advice.</div>
+    <button class="btn sec" style="margin-top:12px" onclick="closeSheet();runCoach()">↻ Refresh review</button>`;
+  $('#ovl').style.display='block'; $('#sheet').classList.add('open');
+}
+
+/* ================= SETTINGS ================= */
+function openSettings(){
+  $('#sheet').innerHTML=`<div class="row" style="margin-bottom:6px"><h2 class="grow" style="font-size:20px">Settings</h2>
+      <button class="pill" onclick="closeSheet()">Close</button></div>
+    <div class="small">Calorie, protein and water targets now come from the plan and change day by day — fasting days drop to zero automatically. Extra sessions still raise the targets on normal days.</div>
+    <div class="g2" style="margin-top:8px">
+      <div><label class="f">Body weight (kg)</label><input type="number" id="sWt" inputmode="numeric" value="${settings.weight}"></div>
+      <div></div>
+    </div>
+    <div class="small" style="margin-top:6px">Weight drives the energy estimates for extra sessions (cycling, swimming…).</div>
+    <label class="f">Anthropic API key (photo analysis + coach)</label>
+    <input type="text" id="sKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(apiKey)}">
+    <div class="small" style="margin-top:6px">Create one at console.anthropic.com → API keys. It's stored only on this device and sent only to api.anthropic.com.</div>
+    <button class="btn" style="margin-top:16px" onclick="saveSettings()">Save</button>
+    <div class="small" style="margin-top:14px">📲 <b>Install:</b> open this page in Safari → Share → <b>Add to Home Screen</b>.</div>`;
+  $('#ovl').style.display='block'; $('#sheet').classList.add('open');
+}
+function closeSheet(){$('#ovl').style.display='none';$('#sheet').classList.remove('open')}
+async function saveSettings(){
+  settings={weight:num($('#sWt').value)||defaults.weight};
+  apiKey=$('#sKey').value.trim();
+  await stSet('settings',settings); await stSet('apikey',apiKey);
+  closeSheet(); toast('Saved ✓','ok'); render();
+}
+
+/* ================= toast ================= */
+let toastT=null;
+function toast(msg,kind){const t=$('#toast');t.className=kind;t.textContent=msg;t.style.display='block';
+  clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',3200)}
+
+boot();
+</script>
+</body>
+</html>
